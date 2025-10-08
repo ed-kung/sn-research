@@ -8,24 +8,140 @@ with open("../../config.yaml.local", "r") as f:
 
 LOCAL_PATH = LOCAL_CONFIG['LOCAL_PATH']
 RAW_DATA_PATH = LOCAL_CONFIG['RAW_DATA_PATH']
+DATA_PATH = LOCAL_CONFIG['DATA_PATH']
 
 sys.path.append(os.path.join(LOCAL_PATH, 'src/python'))
 
 import globals
 
-def get_posts():
-    df = pd.read_parquet(os.path.join(RAW_DATA_PATH, 'item.parquet'))
-    df = df.loc[df['parentId'].isnull()].reset_index(drop=True)
-    df['subName'] = df['subName'].fillna('')
-    cols = ['id', 'userId', 'created_at', 'title', 'text', 'subName', 'freebie', 'bio', 'cost', 'pollCost', 'invoiceActionState', 'paidImgLink']
-    df = df[cols]
+def find_subowner(df, left_time_col='created_at'):
+    df = df.copy()
+    tdf = get_territory_transfers()
+    tdf = tdf.rename(columns={'timeStamp': left_time_col, 'userIdTo': 'subOwner'})
+    tdf = tdf.sort_values(by=left_time_col).reset_index(drop=True)
+    df = df.sort_values(by=left_time_col).reset_index(drop=True)
+    df = pd.merge_asof(
+        left = df,
+        right = tdf[['subName', left_time_col, 'subOwner']],
+        by = 'subName',
+        on = left_time_col,
+        direction = 'backward'
+    )
+    return df
+
+def get_territories(overwrite=False):
+    filename = os.path.join(DATA_PATH, "territories.parquet")
+    if (not overwrite) and os.path.exists(filename):
+        return pd.read_parquet(filename)
+    sdf = pd.read_parquet(os.path.join(RAW_DATA_PATH, "sub.parquet"))
+    sdf = sdf.rename(columns={'name': 'subName'})
+    sdf['subName'] = sdf['subName'].str.lower()
+    sdf['created_at'] = sdf['created_at'].dt.tz_localize('UTC')
+
+    idf = pd.read_parquet(os.path.join(RAW_DATA_PATH, "item.parquet"))
+    idf['subName'] = idf['subName'].fillna('').str.lower()
+    idf['created_at'] = idf['created_at'].dt.tz_localize('UTC')
+
+    out_df = []
+    for idx, row in sdf.iterrows():
+        subName = row['subName']
+        userId = row['userId']
+        created_at = row['created_at']
+        if idf.loc[idf['subName']==subName, 'created_at'].min() < created_at:
+            created_at = idf.loc[idf['subName']==subName, 'created_at'].min()
+        out_df.append({
+            'subName': subName,
+            'created_at': created_at,
+            'currentOwner': userId,
+        })
+    out_df = pd.DataFrame(out_df)
+    out_df = out_df.sort_values(by='created_at', ascending=True).reset_index(drop=True)
+    out_df.to_parquet(filename, index=False)
+    return out_df
+
+def get_territory_transfers(overwrite=False):
+    filename = os.path.join(DATA_PATH, "territory_transfers.parquet")
+    if (not overwrite) and os.path.exists(filename):
+        return pd.read_parquet(filename)
+
+    sdf = get_territories()
+
+    tdf = pd.read_parquet(os.path.join(RAW_DATA_PATH, "territorytransfer.parquet"))
+    tdf['subName'] = tdf['subName'].str.lower()
+    tdf['created_at'] = tdf['created_at'].dt.tz_localize('UTC')
+    tdf = tdf.sort_values(by=['subName', 'created_at'], ascending=True)    
+
+    out_df = []
+    for idx, row in sdf.iterrows():
+        subName = row['subName']
+        userId = row['currentOwner']
+        created_at = row['created_at']
+        if subName not in tdf['subName'].unique():
+            out_df.append({
+                'timeStamp': created_at,
+                'subName': subName,
+                'userIdFrom': 0,
+                'userIdTo': userId,
+            })
+            continue
+        temp_df = tdf[tdf['subName']==subName].copy().reset_index(drop=True)
+        out_df.append({
+            'timeStamp': created_at,
+            'subName': subName,
+            'userIdFrom': 0,
+            'userIdTo': temp_df.loc[0, 'oldUserId']
+        })
+        for idx2, row2 in temp_df.iterrows():
+            out_df.append({
+                'timeStamp': row2['created_at'],
+                'subName': subName,
+                'userIdFrom': row2['oldUserId'],
+                'userIdTo': row2['newUserId']
+            })
+    out_df = pd.DataFrame(out_df)
+    out_df = out_df.sort_values(by=['subName', 'timeStamp'], ascending=True).reset_index(drop=True)
+    out_df.to_parquet(filename, index=False)
+    return out_df
+
+def get_items(overwrite=False):
+    filename = os.path.join(DATA_PATH, "items.parquet")
+    if (not overwrite) and os.path.exists(filename):
+        return pd.read_parquet(filename)
+    item_df = pd.read_parquet(os.path.join(RAW_DATA_PATH, 'item.parquet'))
+    item_df = item_df.rename(columns={'id': 'itemId'})
+    item_df['subName'] = item_df['subName'].str.lower()
+    item_df['created_at'] = item_df['created_at'].dt.tz_localize('UTC')
+    item_df['saloon'] = item_df['title'] == "Stacker Saloon"
+
+    # attach root subname and saloon info
+    root_df = item_df.loc[item_df['parentId'].isnull()].reset_index(drop=True).copy()
+    root_df = root_df[['itemId', 'subName', 'saloon']]
+    root_df = root_df.rename(columns={
+        'itemId': 'rootId', 
+        'subName': 'root_subName', 
+        'saloon': 'root_is_saloon',
+        'bio': 'root_is_bio'
+    })
+    item_df = item_df.merge(root_df, on='rootId', how='left')
 
     # attach n_uploads
     itemupload_df = pd.read_parquet(os.path.join(RAW_DATA_PATH, 'itemupload.parquet'))
     n_uploads_df = itemupload_df.groupby('itemId').agg(n_uploads=('uploadId', 'count')).reset_index()
-    n_uploads_df = n_uploads_df.rename(columns={'itemId': 'id'})
-    df = df.merge(n_uploads_df, on='id', how='left')
-    df['n_uploads'] = df['n_uploads'].fillna(0).astype(int)
+    item_df = item_df.merge(n_uploads_df, on='itemId', how='left')
+    item_df['n_uploads'] = item_df['n_uploads'].fillna(0).astype(int)
+    
+    item_df = item_df.sort_values(by='created_at', ascending=True).reset_index(drop=True)
+
+    item_df.to_parquet(filename, index=False)
+    return item_df
+
+def get_posts(overwrite=False):
+    filename = os.path.join(DATA_PATH, "posts.parquet")
+    if (not overwrite) and os.path.exists(filename):
+        return pd.read_parquet(filename)
+
+    df = get_items()
+    df = df.loc[df['parentId'].isnull()].reset_index(drop=True)
 
     # infer cost modifiers
     df['cost_modifier'] = 0
@@ -52,28 +168,10 @@ def get_posts():
         curr_modifier += 1
         df.loc[idx, 'cost_modifier'] = curr_modifier
 
+    df = df.sort_values(by='created_at', ascending=True).reset_index(drop=True)
+    df.to_parquet(filename, index=False)
     return df
 
-
-def get_items():
-    item_df = pd.read_parquet(os.path.join(RAW_DATA_PATH, 'item.parquet'))
-
-    # attach root subname
-    root_df = item_df.loc[item_df['parentId'].isnull()].reset_index(drop=True).copy()
-    root_df = root_df[['id', 'subName']]
-    root_df = root_df.rename(columns={'id': 'rootId', 'subName': 'root_subName'})
-    item_df = item_df.merge(root_df, on='rootId', how='left')
-    mask = item_df['subName'].isnull() & (~item_df['rootId'].isnull())
-    item_df.loc[mask, 'subName'] = item_df.loc[mask, 'root_subName']
-
-    # attach n_uploads
-    itemupload_df = pd.read_parquet(os.path.join(RAW_DATA_PATH, 'itemupload.parquet'))
-    n_uploads_df = itemupload_df.groupby('itemId').agg(n_uploads=('uploadId', 'count')).reset_index()
-    n_uploads_df = n_uploads_df.rename(columns={'itemId': 'id'})
-    item_df = item_df.merge(n_uploads_df, on='id', how='left')
-    item_df['n_uploads'] = item_df['n_uploads'].fillna(0).astype(int)
-
-    return item_df
 
 def get_post_fees():
     item_df = get_items()
