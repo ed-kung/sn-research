@@ -1,9 +1,16 @@
 import pandas as pd
 
+#---- important user ids ----
+
 # user_ids for SN founder and employees
-k00b_id = 616
-ek_id = 6030
-sox_id = 26458
+k00b_id = 616 # @k00b
+sn_id = 4502 # @sn
+ek_id = 6030 # @ek
+sox_id = 26458 # @sox
+sn_employee_ids = [k00b_id, sn_id, ek_id, sox_id]
+
+# anon
+anon_id = 27
 
 # my user_id
 self_id = 5597
@@ -12,7 +19,19 @@ self_id = 5597
 spammer_id = 30375
 spam_date = "2025-08-25"  # date in which spamming occurred
 
-# important dates and posts
+#---- important item ids ----
+
+# item_ids for perennial posts
+faq_id = 349
+story_id = 1620
+changelog_id = 78763
+guide_id = 81862
+tos_id = 338393
+privacy_id = 338369
+copyright_id = 338453
+perennial_item_ids = [faq_id, story_id, changelog_id, guide_id, tos_id, privacy_id, copyright_id]
+
+#---- important dates and posts ----
 
 # 10% sybil fees
 sf10_item_id = 98002
