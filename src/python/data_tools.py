@@ -2,6 +2,7 @@ import os
 import sys
 import yaml
 import pandas as pd
+import re
 
 with open("../../config.yaml.local", "r") as f:
     LOCAL_CONFIG = yaml.safe_load(f)
@@ -28,6 +29,14 @@ def find_subowner(df, left_time_col='created_at'):
         direction = 'backward'
     )
     return df
+
+IMG_LINK_PATTERN = re.compile(
+    r'(https?://\S+)|'
+    r'!\[.*?\]\(.*?\)|'
+    r'\[.*?\]\(.*?\)'
+)
+def contains_image_or_links(text):
+    return bool(IMG_LINK_PATTERN.search(text))
 
 def get_territories(overwrite=False):
     filename = os.path.join(DATA_PATH, "territories.parquet")
@@ -130,6 +139,9 @@ def get_items(overwrite=False):
     item_df = item_df.merge(n_uploads_df, on='itemId', how='left')
     item_df['n_uploads'] = item_df['n_uploads'].fillna(0).astype(int)
     
+    # check if text contains images or links
+    item_df['hasImageOrLink'] = item_df['text'].fillna('').apply(contains_image_or_links)
+
     item_df = item_df.sort_values(by='created_at', ascending=True).reset_index(drop=True)
 
     item_df.to_parquet(filename, index=False)
@@ -152,7 +164,7 @@ def get_posts(overwrite=False):
     for idx, row in df.iterrows():
         userId = row['userId']
         created_at = row['created_at']
-        if row['bio'] or row['freebie']:
+        if row['bio']:
             continue
         if userId == globals.anon_id:
             curr_user = userId
@@ -172,24 +184,43 @@ def get_posts(overwrite=False):
     df.to_parquet(filename, index=False)
     return df
 
+def get_territory_post_fee_histories(overwrite=False):
+    filename = os.path.join(DATA_PATH, "territory_post_fee_histories.parquet")
+    if (not overwrite) and os.path.exists(filename):
+        return pd.read_parquet(filename)
+    pdf = get_posts()
+    pdf = find_subowner(pdf)
+    pdf['user_is_subOwner'] = pdf['userId']==pdf['subOwner']
+    pdf['date'] = pdf['created_at'].dt.date
+    
+    mask = (pdf['invoiceActionState']!='FAILED') & \
+        (~pdf['bio']) & (~pdf['freebie']) & (~pdf['saloon']) & \
+        (pdf['cost']>0) & (~pdf['user_is_subOwner']) & \
+        (pdf['cost_modifier']==0) & (pdf['n_uploads']==0) & \
+        (~pdf['itemId'].isin(globals.perennial_item_ids)) & \
+        (pdf['userId']!=globals.spammer_id) & \
+        (pdf['userId']!=globals.anon_id) & \
+        (~pdf['hasImageOrLink'])
 
-def get_post_fees():
-    item_df = get_items()
-    itemAct_df = pd.read_parquet(os.path.join(RAW_DATA_PATH, 'itemact.parquet'))
-    item_df = item_df.rename(columns={
-        'id': 'itemId',
-        'userId': 'item_userId',
-        'parentId': 'item_parentId',
-        'rootId': 'item_rootId',
-        'freebie': 'item_is_freebie',
-        'bio': 'item_is_bio',
-        'subName': 'item_subName',
-        'n_uploads': 'item_n_uploads'
-    })
-    item_df = item_df[['itemId', 'item_userId', 'item_parentId', 'item_rootId', 'item_is_freebie', 'item_is_bio', 'item_subName', 'item_n_uploads']]
-    itemAct_df = itemAct_df.loc[itemAct_df['act']=='FEE'].reset_index(drop=True)
-    my_df = itemAct_df.merge(item_df, on='itemId', how='left')
-    my_df = my_df.loc[my_df['userId'] == my_df['item_userId']].reset_index(drop=True)
-    return my_df
+    fee_df = pdf.loc[mask].groupby(['subName', 'date']).agg(
+        posting_fee = ('cost', 'min')
+    ).sort_values(
+        by=['subName', 'date'], ascending=True
+    ).reset_index()
 
+    for idx in range(1, len(fee_df)-1):
+        prev_sub = fee_df.at[idx-1, 'subName']
+        curr_sub = fee_df.at[idx, 'subName']
+        next_sub = fee_df.at[idx+1, 'subName']
+        prev_fee = fee_df.at[idx-1, 'posting_fee']
+        curr_fee = fee_df.at[idx, 'posting_fee']
+        next_fee = fee_df.at[idx+1, 'posting_fee']
+        if (prev_sub==curr_sub) and (curr_sub==next_sub) and (curr_fee>prev_fee) and (curr_fee>next_fee):
+            fee_df.at[idx, 'posting_fee'] = next_fee
+        if (prev_sub==curr_sub) and (curr_sub==next_sub) and (curr_fee<prev_fee) and (curr_fee<next_fee):
+            fee_df.at[idx, 'posting_fee'] = next_fee
+    
+    fee_df = fee_df.sort_values(by=['subName', 'date'], ascending=True).reset_index(drop=True)
+    fee_df.to_parquet(filename, index=False)
+    return fee_df
 

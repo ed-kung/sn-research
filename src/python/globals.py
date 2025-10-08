@@ -49,3 +49,7 @@ sf30_date = pd.to_datetime("2024-09-19 21:38:43.918", utc=True)
 nc_item_id = 835465
 nc_date = pd.to_datetime("2025-01-03 19:06:36.050", utc=True)
 
+# data start and end
+data_start = pd.to_datetime("2021-06-11 19:26:02.662000+00:00", utc=True)
+data_end = pd.to_datetime("2025-10-05 19:53:06.794000+00:00", utc=True)
+
