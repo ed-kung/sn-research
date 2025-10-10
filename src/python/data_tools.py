@@ -112,6 +112,48 @@ def get_territory_transfers(overwrite=False):
     out_df.to_parquet(filename, index=False)
     return out_df
 
+def get_territory_billing_cycles():
+    sadf = pd.read_parquet(os.path.join(RAW_DATA_PATH, "subact.parquet"))
+    sadf['subName'] = sadf['subName'].str.lower()
+    sadf['sats'] = sadf['msats']/1000
+    sadf['created_at'] = sadf['created_at'].dt.tz_localize('UTC')
+    sadf = sadf.loc[sadf['type'] == 'BILLING'].reset_index(drop=True)
+
+    sadf['period'] = ''
+    for idx, row in sadf.iterrows():
+        created_at = row['created_at']
+        sats = row['sats']
+        if created_at < globals.sub_cost_drop_date:
+            if sats <= globals.sub_cost_monthly_pre:
+                sadf.at[idx, 'period'] = 'MONTHLY'
+            elif sats <= globals.sub_cost_yearly_pre:
+                sadf.at[idx, 'period'] = 'YEARLY'
+            else:
+                sadf.at[idx, 'period'] = 'PERPETUAL'
+        elif created_at > globals.sub_cost_drop_date:
+            if sats <= globals.sub_cost_monthly_post:
+                sadf.at[idx, 'period'] = 'MONTHLY'
+            elif sats <= globals.sub_cost_yearly_post:
+                sadf.at[idx, 'period'] = 'YEARLY'
+            else:
+                sadf.at[idx, 'period'] = 'PERPETUAL'
+
+    sadf['billing_cycle_end'] = pd.NaT
+    sadf['billing_cycle_end'] = sadf['billing_cycle_end'].dt.tz_localize('UTC')
+    for idx, row in sadf.iterrows():
+        if row['period'] == 'MONTHLY':
+            sadf.at[idx, 'billing_cycle_end'] = row['created_at'] + pd.DateOffset(months=1) + pd.DateOffset(days=5)
+        elif row['period'] == 'YEARLY':
+            sadf.at[idx, 'billing_cycle_end'] = row['created_at'] + pd.DateOffset(years=1) + pd.DateOffset(days=5)
+        elif row['period'] == 'PERPETUAL':
+            sadf.at[idx, 'billing_cycle_end'] = row['created_at'] + pd.DateOffset(years=100)
+
+    sadf = sadf.rename(columns={'created_at': 'billing_cycle_start'})
+    keep_cols = ['subName', 'userId', 'billing_cycle_start', 'billing_cycle_end', 'sats', 'period']
+    sadf = sadf[keep_cols]
+    sadf = sadf.sort_values(by=['subName', 'billing_cycle_start'], ascending=True).reset_index(drop=True)
+    return sadf 
+
 def get_items(overwrite=False):
     filename = os.path.join(DATA_PATH, "items.parquet")
     if (not overwrite) and os.path.exists(filename):

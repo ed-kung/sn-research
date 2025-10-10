@@ -49,6 +49,18 @@ sf30_date = pd.to_datetime("2024-09-19 21:38:43.918", utc=True)
 nc_item_id = 835465
 nc_date = pd.to_datetime("2025-01-03 19:06:36.050", utc=True)
 
+# user generated territories first allowed
+
+
+# territory cost drop to 50k/month, 500k/year, (perpetual stays at 3m)
+sub_cost_drop_id = 822636
+sub_cost_drop_date = pd.to_datetime("2024-12-24 14:44:40.812000+00:00", utc=True)
+sub_cost_monthly_pre = 100000
+sub_cost_yearly_pre = 1000000
+sub_cost_monthly_post = 50000
+sub_cost_yearly_post = 500000
+sub_cost_perpetual = 3000000
+
 # data start and end
 data_start = pd.to_datetime("2021-06-11 19:26:02.662000+00:00", utc=True)
 data_end = pd.to_datetime("2025-10-05 19:53:06.794000+00:00", utc=True)
