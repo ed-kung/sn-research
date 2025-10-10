@@ -3,6 +3,7 @@ import sys
 import yaml
 import pandas as pd
 import re
+from itertools import product
 
 with open("../../config.yaml.local", "r") as f:
     LOCAL_CONFIG = yaml.safe_load(f)
@@ -141,6 +142,10 @@ def get_territory_billing_cycles():
     sadf['billing_cycle_end'] = pd.NaT
     sadf['billing_cycle_end'] = sadf['billing_cycle_end'].dt.tz_localize('UTC')
     for idx, row in sadf.iterrows():
+        # special handling of mempool and art due to special circumstances granting pereptual
+        if row['subName'] in ['mempool', 'art']:
+            sadf.at[idx, 'billing_cycle_end'] = row['created_at'] + pd.DateOffset(years=100)
+            continue
         if row['period'] == 'MONTHLY':
             sadf.at[idx, 'billing_cycle_end'] = row['created_at'] + pd.DateOffset(months=1) + pd.DateOffset(days=5)
         elif row['period'] == 'YEARLY':
@@ -233,7 +238,7 @@ def get_territory_post_fee_histories(overwrite=False):
     pdf = get_posts()
     pdf = find_subowner(pdf)
     pdf['user_is_subOwner'] = pdf['userId']==pdf['subOwner']
-    pdf['date'] = pdf['created_at'].dt.date
+    pdf['date'] = pdf['created_at'].dt.floor('D')
     
     mask = (pdf['invoiceActionState']!='FAILED') & \
         (~pdf['bio']) & (~pdf['freebie']) & (~pdf['saloon']) & \
@@ -265,4 +270,98 @@ def get_territory_post_fee_histories(overwrite=False):
     fee_df = fee_df.sort_values(by=['subName', 'date'], ascending=True).reset_index(drop=True)
     fee_df.to_parquet(filename, index=False)
     return fee_df
+
+def get_territory_by_day_panel():
+    fees_df = get_territory_post_fee_histories()
+
+    posts_df = get_posts()
+    posts_df['subName'] = posts_df['subName'].fillna('')
+    posts_df['subName'] = posts_df['subName'].astype(str)
+
+    billing_cycles = get_territory_billing_cycles()
+    billing_cycles['billing_cycle_start'] = billing_cycles['billing_cycle_start'].dt.floor('D')
+    billing_cycles['billing_cycle_end'] = billing_cycles['billing_cycle_end'].dt.floor('D')
+    billing_cycles['subName'] = billing_cycles['subName'].fillna('')
+    billing_cycles['subName'] = billing_cycles['subName'].astype(str)
+
+    # Initialize territory-daily panel
+    subs = list(posts_df['subName'].unique())
+    N_days = (globals.data_end.date() - globals.data_start.date()).days
+    dates = [(globals.data_start.date() + pd.DateOffset(days=i)).floor('D') for i in range(N_days+1)]
+    tdf = pd.DataFrame(list(product(subs, dates)), columns=['subName', 'date'])
+    tdf['date'] = tdf['date'].dt.tz_localize('UTC')     
+
+    # first post date for each sub
+    # drop dates before first post date
+    first_post_dates = posts_df.groupby('subName').agg(
+        first_post_date = ('created_at', 'min')
+    ).reset_index()
+    first_post_dates['first_post_date'] = first_post_dates['first_post_date'].dt.floor('D')
+
+    tdf = tdf.merge(first_post_dates, on='subName', how='left')
+    tdf = tdf[tdf['date'] >= tdf['first_post_date']].reset_index(drop=True)
+    tdf = tdf.drop(columns=['first_post_date'])
+
+    # merge on billing cycles
+    tdf = tdf.sort_values(by='date', ascending=True)
+    billing_cycles = billing_cycles.sort_values(by='billing_cycle_start', ascending=True)
+    tdf = pd.merge_asof(
+        tdf,
+        billing_cycles[['subName', 'billing_cycle_start', 'billing_cycle_end']],
+        by='subName',
+        left_on='date',
+        right_on='billing_cycle_start',
+        direction='backward'
+    )
+
+    # merge on n_posts
+    mask = posts_df['invoiceActionState'] != 'FAILED'
+    posts_df['date'] = posts_df['created_at'].dt.floor('D')
+    n_posts = posts_df.loc[mask].groupby(['subName', 'date']).agg(
+        n_posts = ('itemId', 'count')
+    ).reset_index()
+    tdf = tdf.merge(n_posts, on=['subName', 'date'], how='left')
+    tdf['n_posts'] = tdf['n_posts'].fillna(0)
+
+    # sanity check: no posts on dates outside billing cycle
+    # drop dates outside billing cycle with zero posts
+    bad = (tdf['date'] > tdf['billing_cycle_end']) & (tdf['n_posts'] > 0)
+    assert bad.sum() == 0
+    todrop = (tdf['date'] > tdf['billing_cycle_end']) & (tdf['n_posts'] == 0)
+    tdf = tdf[~todrop].reset_index(drop=True)
+    tdf = tdf.drop(columns=['billing_cycle_start', 'billing_cycle_end'])
+
+    # drop territories with no posts and null territory
+    todrop = tdf['subName']==''
+    tdf = tdf[~todrop].reset_index(drop=True)
+    tdf['sub_n_posts'] = tdf.groupby('subName')['n_posts'].transform('sum')
+    tdf = tdf[tdf['sub_n_posts']>0].reset_index(drop=True)
+    tdf = tdf.drop(columns=['sub_n_posts'])
+
+    # merge on posting fees
+    tdf = tdf.sort_values(by='date', ascending=True)
+    fees_df = fees_df.sort_values(by='date', ascending=True)
+    tdf = pd.merge_asof(tdf, fees_df, by='subName', on='date', direction='backward')
+
+    # backfill posting fees
+    tdf = tdf.sort_values(by=['subName', 'date'], ascending=False).reset_index(drop=True)
+    currsub = tdf['subName'].iloc[0]
+    currfee = tdf['posting_fee'].iloc[0]
+    for idx in range(1, len(tdf)):
+        sub = tdf.at[idx, 'subName']
+        fee = tdf.at[idx, 'posting_fee']
+        if sub == currsub:
+            if pd.isna(fee):
+                tdf.at[idx, 'posting_fee'] = currfee
+            else:
+                currfee = fee
+        else:
+            currsub = sub
+            currfee = fee
+
+    # drop null posting fees
+    todrop = tdf['posting_fee'].isnull()
+    tdf = tdf[~todrop].reset_index(drop=True)
+    tdf = tdf.sort_values(by=['subName', 'date'], ascending=True).reset_index(drop=True)
+    return tdf
 
