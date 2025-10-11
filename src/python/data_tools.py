@@ -365,3 +365,35 @@ def get_territory_by_day_panel():
     tdf = tdf.sort_values(by=['subName', 'date'], ascending=True).reset_index(drop=True)
     return tdf
 
+def get_zaps(overwrite=False):
+    filename = os.path.join(DATA_PATH, "zaps.parquet")
+    if (not overwrite) and os.path.exists(filename):
+        return pd.read_parquet(filename)
+
+    df = pd.read_parquet(os.path.join(RAW_DATA_PATH, "itemact.parquet"))
+
+    df = df.loc[df['invoiceActionState'] != 'FAILED'].reset_index(drop=True)
+    df = df.sort_values(by=['itemId','userId','created_at']).reset_index(drop=True)
+    df['sats'] = df['msats'] / 1000
+
+    fees = df.loc[df['act']=='FEE'].groupby(['itemId', 'userId', 'created_at']).agg(
+        fee_sats = ('sats', 'sum')
+    ).reset_index()
+
+    tips = df.loc[df['act']=='TIP'].groupby(['itemId', 'userId', 'created_at']).agg(
+        tip_sats = ('sats', 'sum')
+    ).reset_index()
+
+    zaps = tips.merge(
+        fees, on=['itemId', 'userId', 'created_at'], how='left'
+    ).reset_index(drop=True)
+
+    zaps['tip_sats'] = zaps['tip_sats'].fillna(0)
+    zaps['fee_sats'] = zaps['fee_sats'].fillna(0)
+    zaps['sats'] = zaps['tip_sats'] + zaps['fee_sats']
+    zaps['created_at'] = zaps['created_at'].dt.tz_localize('UTC')
+    zaps = zaps.rename(columns={'created_at': 'zap_time'})
+    zaps['sybil_rate'] = zaps['fee_sats'] / zaps['sats']
+
+    zaps.to_parquet(filename)
+    return zaps
