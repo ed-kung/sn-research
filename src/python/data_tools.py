@@ -231,6 +231,15 @@ def get_posts(overwrite=False):
     df.to_parquet(filename, index=False)
     return df
 
+def get_comments(overwrite=False):
+    filename = os.path.join(DATA_PATH, "comments.parquet")
+    if (not overwrite) and os.path.exists(filename):
+        return pd.read_parquet(filename)
+    df = get_items()
+    df = df.loc[~df['parentId'].isnull()].reset_index(drop=True)
+    df.to_parquet(filename, index=False)
+    return df
+
 def get_territory_post_fee_histories(overwrite=False):
     filename = os.path.join(DATA_PATH, "territory_post_fee_histories.parquet")
     if (not overwrite) and os.path.exists(filename):

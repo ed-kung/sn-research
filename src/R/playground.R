@@ -1,11 +1,10 @@
 rm(list=ls())
 
-library(here)
 library(lfe)
 library(yaml)
 library(stargazer)
 
-LOCAL_CONFIG <- read_yaml("config.yaml.local")
+LOCAL_CONFIG <- read_yaml("../../config.yaml.local")
 DATA_PATH <- LOCAL_CONFIG["DATA_PATH"][[1]]
 
 filename <- paste0(DATA_PATH, "/posts_quality_regs.csv")
