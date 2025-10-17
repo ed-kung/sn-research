@@ -3,6 +3,7 @@ import sys
 import yaml
 import pandas as pd
 import re
+import numpy as np
 from itertools import product
 
 with open("../../config.yaml.local", "r") as f:
@@ -16,6 +17,7 @@ sys.path.append(os.path.join(LOCAL_PATH, 'src/python'))
 
 import globals
 
+# ---- Attach a column for the owner of the sub based on the time column
 def find_subowner(df, left_time_col='created_at'):
     df = df.copy()
     tdf = get_territory_transfers()
@@ -31,6 +33,7 @@ def find_subowner(df, left_time_col='created_at'):
     )
     return df
 
+# ---- Check if a markdown string contains images or links
 IMG_LINK_PATTERN = re.compile(
     r'(https?://\S+)|'
     r'!\[.*?\]\(.*?\)|'
@@ -39,6 +42,13 @@ IMG_LINK_PATTERN = re.compile(
 def contains_image_or_links(text):
     return bool(IMG_LINK_PATTERN.search(text))
 
+# ---- Convert a pandas datetime series to week
+def as_week(x):
+    return x.dt.to_period('W-SAT').dt.start_time
+
+
+# ---- Get dataframe on territories
+# ---- Each row is a unique territory (subName)
 def get_territories(overwrite=False):
     filename = os.path.join(DATA_PATH, "territories.parquet")
     if (not overwrite) and os.path.exists(filename):
@@ -69,6 +79,8 @@ def get_territories(overwrite=False):
     out_df.to_parquet(filename, index=False)
     return out_df
 
+# ---- Get dataframe on territory ownership transfers
+# ---- Each row is a unique transfer (subName, timeStamp, userIdFrom, userIdTo)
 def get_territory_transfers(overwrite=False):
     filename = os.path.join(DATA_PATH, "territory_transfers.parquet")
     if (not overwrite) and os.path.exists(filename):
@@ -113,6 +125,8 @@ def get_territory_transfers(overwrite=False):
     out_df.to_parquet(filename, index=False)
     return out_df
 
+# ---- Get dataframe on territory billing cycles
+# ---- Each row is a unique billing cycle (subName, userId, billing_cycle_start)
 def get_territory_billing_cycles():
     sadf = pd.read_parquet(os.path.join(RAW_DATA_PATH, "subact.parquet"))
     sadf['subName'] = sadf['subName'].str.lower()
@@ -159,6 +173,8 @@ def get_territory_billing_cycles():
     sadf = sadf.sort_values(by=['subName', 'billing_cycle_start'], ascending=True).reset_index(drop=True)
     return sadf 
 
+# ---- Get dataframe on items (posts and comments)
+# ---- Each row is a unique item (itemId)
 def get_items(overwrite=False):
     filename = os.path.join(DATA_PATH, "items.parquet")
     if (not overwrite) and os.path.exists(filename):
@@ -194,6 +210,8 @@ def get_items(overwrite=False):
     item_df.to_parquet(filename, index=False)
     return item_df
 
+# ---- Get dataframe on posts only (no comments)
+# ---- Each row is a unique post (itemId)
 def get_posts(overwrite=False):
     filename = os.path.join(DATA_PATH, "posts.parquet")
     if (not overwrite) and os.path.exists(filename):
@@ -231,6 +249,8 @@ def get_posts(overwrite=False):
     df.to_parquet(filename, index=False)
     return df
 
+# ---- Get dataframe on comments only (no posts)
+# ---- Each row is a unique comment (itemId)
 def get_comments(overwrite=False):
     filename = os.path.join(DATA_PATH, "comments.parquet")
     if (not overwrite) and os.path.exists(filename):
@@ -240,6 +260,8 @@ def get_comments(overwrite=False):
     df.to_parquet(filename, index=False)
     return df
 
+# ---- Get dataframe on territory posting fee histories
+# ---- Each row is territory/day and the posting fee on that day (subName, date)
 def get_territory_post_fee_histories(overwrite=False):
     filename = os.path.join(DATA_PATH, "territory_post_fee_histories.parquet")
     if (not overwrite) and os.path.exists(filename):
@@ -280,6 +302,8 @@ def get_territory_post_fee_histories(overwrite=False):
     fee_df.to_parquet(filename, index=False)
     return fee_df
 
+# ---- Get territory-by-day panel dataframe
+# ---- Each row is a territory/day (subName, date)
 def get_territory_by_day_panel():
     fees_df = get_territory_post_fee_histories()
 
@@ -372,8 +396,31 @@ def get_territory_by_day_panel():
     todrop = tdf['posting_fee'].isnull()
     tdf = tdf[~todrop].reset_index(drop=True)
     tdf = tdf.sort_values(by=['subName', 'date'], ascending=True).reset_index(drop=True)
+
+    # add on subowner info
+    tdf = find_subowner(tdf, left_time_col='date')
+
+    # backfill subowner info
+    tdf = tdf.sort_values(by=['subName', 'date'], ascending=False).reset_index(drop=True)
+    currsub = tdf['subName'].iloc[0]
+    currowner = tdf['subOwner'].iloc[0]
+    for idx in range(1, len(tdf)):
+        sub = tdf.at[idx, 'subName']
+        owner = tdf.at[idx, 'subOwner']
+        if sub == currsub:
+            if pd.isna(owner):
+                tdf.at[idx, 'subOwner'] = currowner
+            else:
+                currowner = owner
+        else:
+            currsub = sub
+            currowner = owner
+
+    tdf = tdf.sort_values(by=['subName', 'date'], ascending=True).reset_index(drop=True)
     return tdf
 
+# ---- Get dataframe on zaps
+# ---- Each row is a unique zap (itemId, userId, created_at)
 def get_zaps(overwrite=False):
     filename = os.path.join(DATA_PATH, "zaps.parquet")
     if (not overwrite) and os.path.exists(filename):
@@ -406,3 +453,146 @@ def get_zaps(overwrite=False):
 
     zaps.to_parquet(filename)
     return zaps
+
+
+# ---- Get daily price data
+# ---- Each row is a day (timeOpen)
+def get_price_daily():
+    df = pd.read_csv(
+        os.path.join(RAW_DATA_PATH, "coinmarketcap-daily-historical.csv"),
+        delimiter=";"
+    )
+    df['timeOpen'] = pd.to_datetime(df['timeOpen'])
+    df['timeClose'] = pd.to_datetime(df['timeClose'])
+    df['price_mid'] = (df['low'] + df['high']) / 2
+    df = df.rename(columns={
+        'high': 'price_high',
+        'low': 'price_low',
+        'open': 'price_open',
+        'close': 'price_close',
+    })
+    keep_cols = ['timeOpen', 'timeClose', 'price_open', 'price_close',
+                 'price_low', 'price_mid', 'price_high']
+
+    return df[keep_cols]
+
+# ---- Get post quality analysis data
+# ---- Each row is a unique post (itemId)
+def get_post_quality_analysis_data():
+    zaps = get_zaps()
+    posts = get_posts()
+    comments = get_comments()
+    prices = get_price_daily()
+
+    # select posts to consider
+    mask = (posts['invoiceActionState'] != 'FAILED') & \
+        (~posts['bio']) & (~posts['freebie']) & (~posts['saloon']) & \
+        (posts['subName'].notnull()) & (posts['subName'] != '') & \
+        (~posts['subName'].isin(['jobs', 'ama']))
+    posts = posts.loc[mask].reset_index(drop=True)
+
+    # select comments to consider
+    mask = (comments['invoiceActionState'] != 'FAILED')
+    comments = comments.loc[mask].reset_index(drop=True)
+
+    # for zaps, calculate hours after post
+    right = posts[['itemId', 'created_at']].rename(
+        columns = {'created_at': 'post_created_at'}
+    ).reset_index(drop=True)
+    zaps = zaps.merge(right, on='itemId', how='inner')
+    zaps['hours_after_post'] = np.ceil((zaps['zap_time'] - zaps['post_created_at']).dt.total_seconds() / 3600)
+    zaps['hours_after_post'] = zaps['hours_after_post'].clip(upper=49)
+
+    # for comments, calculate hours after post
+    right = posts[['itemId', 'created_at']].rename(
+        columns = {'itemId': 'rootId', 'created_at': 'post_created_at'}
+    ).reset_index(drop=True)
+    comments = comments.merge(right, on='rootId', how='inner')
+    comments['hours_after_post'] = np.ceil((comments['created_at'] - comments['post_created_at']).dt.total_seconds() / 3600)
+    comments['hours_after_post'] = comments['hours_after_post'].clip(upper=49)
+
+    # merge on zaps in first 48 hours
+    zaps = zaps.loc[zaps['hours_after_post'] <= 48].reset_index(drop=True)
+    zaps48 = zaps.groupby('itemId').agg(
+        sats48 = ('sats', 'sum')
+    ).reset_index()
+    posts = posts.merge(zaps48, on='itemId', how='left')
+    posts['sats48'] = posts['sats48'].fillna(0)
+
+    # merge on comments in first 48 hours
+    comments = comments.loc[comments['hours_after_post'] <= 48].reset_index(drop=True)
+    comments48 = comments.groupby('rootId').agg(
+        comments48 = ('itemId', 'count')
+    ).reset_index().rename(columns={'rootId': 'itemId'})
+    posts = posts.merge(comments48, on='itemId', how='left')
+    posts['comments48'] = posts['comments48'].fillna(0)
+
+    # add subOwner info
+    posts = find_subowner(posts)
+
+    # select only non-zero cost posts where poster != subOwner
+    mask = (posts['userId'] != posts['subOwner']) & \
+        (posts['cost'] > 0)
+    posts = posts.loc[mask].reset_index(drop=True)
+
+    # get the week of the post
+    posts['week'] = as_week(posts['created_at'])
+
+    # merge on weekly price data
+    prices['week'] = as_week(prices['timeOpen'])
+    weekly_prices = prices.groupby('week').agg(
+        btc_price = ('price_mid', 'mean')
+    ).reset_index()
+    posts = posts.merge(weekly_prices, on='week', how='left')
+
+    # generate categorical subId and weekId
+    posts['subId'], uniques = pd.factorize(posts['subName'])
+    posts['weekId'], uniques = pd.factorize(posts['week'])
+
+    # generate categorial for sub_subOwner_id
+    posts['sub_subOwner'] = posts['subName'] + '_' + posts['subOwner'].astype(str)
+    posts['sub_subOwner_id'], uniques = pd.factorize(posts['sub_subOwner'])
+
+    # keep columns
+    keep_cols = [
+        'itemId', 'userId', 
+        'subName', 'subId', 'subOwner', 'sub_subOwner', 'sub_subOwner_id',
+        'created_at', 'week', 'weekId', 'btc_price', 
+        'title', 'text', 'cost', 'sats48', 'comments48'
+    ]
+
+    return posts[keep_cols]
+
+# ---- Get post quantity analysis data
+# ---- Each row is a territory/week (subName, week)
+def get_post_quantity_analysis_data():
+    tdf = get_territory_by_day_panel()
+    prices = get_price_daily()
+
+    # generate territory/week level data
+    tdf['week'] = as_week(tdf['date'])
+    df = tdf.groupby(['subName', 'week', 'subOwner']).agg(
+        n_posts = ('n_posts', 'sum'),
+        posting_fee = ('posting_fee', 'mean')
+    ).reset_index()
+
+    # merge on weekly price data
+    prices['week'] = as_week(prices['timeOpen'])
+    weekly_prices = prices.groupby('week').agg(
+        btc_price = ('price_mid', 'mean')
+    ).reset_index()
+    df = df.merge(weekly_prices, on='week', how='left')
+
+    # generate categorical ids
+    df['subId'], uniques = pd.factorize(df['subName'])
+    df['weekId'], uniques = pd.factorize(df['week'])
+    df['sub_subOwner'] = df['subName'] + '_' + df['subOwner'].astype(str)
+    df['sub_subOwner_id'], uniques = pd.factorize(df['sub_subOwner'])
+
+    keep_cols = [
+        'subName', 'subId', 'subOwner', 'sub_subOwner', 'sub_subOwner_id',
+        'week', 'weekId', 'btc_price',
+        'n_posts', 'posting_fee'
+    ]
+
+    return df[keep_cols]
