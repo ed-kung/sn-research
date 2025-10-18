@@ -33,6 +33,19 @@ perennial_item_ids = [faq_id, story_id, changelog_id, guide_id, tos_id, privacy_
 
 #---- important dates and posts ----
 
+# data start and end
+data_start = pd.to_datetime("2021-06-11 19:26:02.662000+00:00", utc=True)
+data_end = pd.to_datetime("2025-10-05 19:53:06.794000+00:00", utc=True)
+
+# rewards changes
+# (incomplete still)
+rewards_changes = [
+    (42401,  pd.to_datetime("2022-07-07 21:07:36.786", utc=True)),
+    (104632, pd.to_datetime("2022-12-09 20:55:50.032", utc=True)),
+    (239518, pd.to_datetime("2023-08-30 17:16:29.008", utc=True)),
+    (814634, pd.to_datetime("2024-12-18 17:03:17.121", utc=True))
+]
+
 # 10% sybil fees
 sf10_item_id = 98002
 sf10_date = pd.to_datetime("2022-11-23 19:12:15.571", utc=True)
@@ -45,10 +58,6 @@ fee10_date = pd.to_datetime("2023-11-12 18:39:34.742", utc=True)
 sf30_item_id = 692150 # item id where k00b announced sybil fee going to 30%
 sf30_date = pd.to_datetime("2024-09-19 21:38:43.918", utc=True)
 
-# SN goes non-custodial
-nc_item_id = 835465
-nc_date = pd.to_datetime("2025-01-03 19:06:36.050", utc=True)
-
 # territory cost drop to 50k/month, 500k/year, (perpetual stays at 3m)
 sub_cost_drop_id = 822636 # item id
 sub_cost_drop_date = pd.to_datetime("2024-12-24 14:44:40.812000+00:00", utc=True)
@@ -58,7 +67,7 @@ sub_cost_monthly_post = 50000
 sub_cost_yearly_post = 500000
 sub_cost_perpetual = 3000000
 
-# data start and end
-data_start = pd.to_datetime("2021-06-11 19:26:02.662000+00:00", utc=True)
-data_end = pd.to_datetime("2025-10-05 19:53:06.794000+00:00", utc=True)
+# SN goes non-custodial
+nc_item_id = 835465
+nc_date = pd.to_datetime("2025-01-03 19:06:36.050", utc=True)
 

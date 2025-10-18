@@ -45,6 +45,12 @@ def contains_image_or_links(text):
 # ---- Convert a pandas datetime series to week
 def as_week(x):
     return x.dt.to_period('W-SAT').dt.start_time
+def as_date(x):
+    return x.dt.floor('D')
+def as_month(x):
+    return x.dt.to_period('M').dt.start_time
+def as_quarter(x):
+    return x.dt.to_period('Q').dt.start_time
 
 
 # ---- Get dataframe on territories
@@ -205,6 +211,19 @@ def get_items(overwrite=False):
     # check if text contains images or links
     item_df['hasImageOrLink'] = item_df['text'].fillna('').apply(contains_image_or_links)
 
+    # attach sats in first 48 hours
+    zap_df = get_zaps()
+    right = item_df[['itemId', 'created_at']].rename(
+        columns = {'created_at': 'item_created_at'}
+    )
+    zap_df = zap_df.merge(right, on='itemId', how='inner')
+    zap_df['hours_after_post'] = np.ceil((zap_df['zap_time'] - zap_df['item_created_at']).dt.total_seconds() / 3600)
+    sats48 = zap_df.loc[zap_df['hours_after_post']<=48].groupby('itemId').agg(
+        sats48 = ('sats', 'sum')
+    ).reset_index()
+    item_df = item_df.merge(sats48, on='itemId', how='left')
+    item_df['sats48'] = item_df['sats48'].fillna(0)
+
     item_df = item_df.sort_values(by='created_at', ascending=True).reset_index(drop=True)
 
     item_df.to_parquet(filename, index=False)
@@ -244,6 +263,23 @@ def get_posts(overwrite=False):
         curr_time = created_at
         curr_modifier += 1
         df.loc[idx, 'cost_modifier'] = curr_modifier
+    
+    # attach comments in first 48 hours
+    comments = get_comments()
+    mask = (comments['invoiceActionState'] != 'FAILED')
+    comments = comments.loc[mask].reset_index(drop=True)
+    right = df[['itemId', 'created_at']].rename(
+        columns = {'itemId': 'rootId', 'created_at': 'post_created_at'}
+    )
+    comments = comments.merge(right, on='rootId', how='inner')
+    comments['hours_after_post'] = np.ceil((comments['created_at'] - comments['post_created_at']).dt.total_seconds() / 3600)
+    comments48 = comments.loc[
+        comments['hours_after_post'] <= 48
+    ].groupby('rootId').agg(
+        comments48 = ('itemId', 'count')
+    ).reset_index().rename(columns={'rootId': 'itemId'})
+    df = df.merge(comments48, on='itemId', how='left')
+    df['comments48'] = df['comments48'].fillna(0)
 
     df = df.sort_values(by='created_at', ascending=True).reset_index(drop=True)
     df.to_parquet(filename, index=False)
@@ -490,42 +526,6 @@ def get_post_quality_analysis_data():
         (posts['subName'].notnull()) & (posts['subName'] != '') & \
         (~posts['subName'].isin(['jobs', 'ama']))
     posts = posts.loc[mask].reset_index(drop=True)
-
-    # select comments to consider
-    mask = (comments['invoiceActionState'] != 'FAILED')
-    comments = comments.loc[mask].reset_index(drop=True)
-
-    # for zaps, calculate hours after post
-    right = posts[['itemId', 'created_at']].rename(
-        columns = {'created_at': 'post_created_at'}
-    ).reset_index(drop=True)
-    zaps = zaps.merge(right, on='itemId', how='inner')
-    zaps['hours_after_post'] = np.ceil((zaps['zap_time'] - zaps['post_created_at']).dt.total_seconds() / 3600)
-    zaps['hours_after_post'] = zaps['hours_after_post'].clip(upper=49)
-
-    # for comments, calculate hours after post
-    right = posts[['itemId', 'created_at']].rename(
-        columns = {'itemId': 'rootId', 'created_at': 'post_created_at'}
-    ).reset_index(drop=True)
-    comments = comments.merge(right, on='rootId', how='inner')
-    comments['hours_after_post'] = np.ceil((comments['created_at'] - comments['post_created_at']).dt.total_seconds() / 3600)
-    comments['hours_after_post'] = comments['hours_after_post'].clip(upper=49)
-
-    # merge on zaps in first 48 hours
-    zaps = zaps.loc[zaps['hours_after_post'] <= 48].reset_index(drop=True)
-    zaps48 = zaps.groupby('itemId').agg(
-        sats48 = ('sats', 'sum')
-    ).reset_index()
-    posts = posts.merge(zaps48, on='itemId', how='left')
-    posts['sats48'] = posts['sats48'].fillna(0)
-
-    # merge on comments in first 48 hours
-    comments = comments.loc[comments['hours_after_post'] <= 48].reset_index(drop=True)
-    comments48 = comments.groupby('rootId').agg(
-        comments48 = ('itemId', 'count')
-    ).reset_index().rename(columns={'rootId': 'itemId'})
-    posts = posts.merge(comments48, on='itemId', how='left')
-    posts['comments48'] = posts['comments48'].fillna(0)
 
     # add subOwner info
     posts = find_subowner(posts)
