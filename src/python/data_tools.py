@@ -512,6 +512,20 @@ def get_price_daily():
 
     return df[keep_cols]
 
+# ---- Get user stats by day
+# ---- Each row is a user/day (userId, date)
+def get_user_stats_days():
+    df = pd.read_parquet(os.path.join(RAW_DATA_PATH, "user_stats_days.parquet"))
+    df = df.loc[df['id'].notnull()].reset_index(drop=True)
+    df['t'] = df['t'].dt.tz_localize('UTC')
+    df['t'] = as_date(df['t'])
+    df = df.rename(columns={'t':'date', 'id':'userId'})
+    for col in ['tipped', 'rewards', 'referrals', 'one_day_referrals', 'revenue', 'stacked', 'fees', 'donated', 'billing', 'zaps', 'spent']:
+        df[f"sats_{col}"] = df[f"msats_{col}"] / 1000
+        df = df.drop(columns=[f"msats_{col}"])
+    df = df.fillna(0)
+    return df
+
 # ---- Get post quality analysis data
 # ---- Each row is a unique post (itemId)
 def get_post_quality_analysis_data():
