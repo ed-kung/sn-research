@@ -33,6 +33,14 @@ def find_subowner(df, left_time_col='created_at'):
     )
     return df
 
+# ---- Compute rolling sums of columns
+def rolling_sum(df, group_col, time_col, sum_cols, window):
+    df = df.sort_values(by=[group_col, time_col], ascending=True).reset_index(drop=True)
+    for col in sum_cols:
+        rolling = df.groupby(group_col)[col].rolling(window=window, min_periods=window).sum().reset_index(drop=True)
+        df[f'rolling_{col}'] = rolling
+    return df
+
 # ---- Check if a markdown string contains images or links
 IMG_LINK_PATTERN = re.compile(
     r'(https?://\S+)|'
@@ -512,6 +520,16 @@ def get_price_daily():
 
     return df[keep_cols]
 
+# ---- Get weekly price data
+# ---- Each row is a week
+def get_price_weekly():
+    daily = get_price_daily()
+    daily['week'] = as_week(daily['timeOpen'])
+    weekly = daily.groupby('week').agg(
+        btc_price = ('price_mid', 'mean')
+    ).reset_index()
+    return weekly
+
 # ---- Get user stats by day
 # ---- Each row is a user/day (userId, date)
 def get_user_stats_days():
@@ -525,6 +543,100 @@ def get_user_stats_days():
         df = df.drop(columns=[f"msats_{col}"])
     df = df.fillna(0)
     return df
+
+# ---- Get user by week panel
+# ---- Each row is a user/day (userId, week)
+def get_user_by_week_panel(overwrite=False):
+    filename = os.path.join(DATA_PATH, "user_by_week_panel.parquet")
+    if (not overwrite) and os.path.exists(filename):
+        return pd.read_parquet(filename)
+
+    user_stats = get_user_stats_days()
+    user_stats['week'] = as_week(user_stats['date'])
+
+    items = get_items()
+    items['week'] = as_week(items['created_at'])
+
+    # Initialize user-weekly panel
+    users = list(items['userId'].unique())
+    week_start = globals.data_start.to_period('W-SAT').start_time
+    week_end = globals.data_end.to_period('W-SAT').start_time
+    weeks = list(pd.date_range(start=week_start, end=week_end, freq='7D'))
+    df = pd.DataFrame( list(product(users, weeks)), columns=['userId', 'week'])
+
+    # Merge on user first item and drop weeks before first item
+    first_items = items.groupby('userId').agg(
+        first_item_week = ('week', 'min')
+    ).reset_index()
+    df = df.merge(first_items, on='userId', how='left')
+    df = df.loc[df['week'] >= df['first_item_week']].reset_index(drop=True)
+    df = df.drop(columns=['first_item_week'])
+
+    # User weekly stats
+    weekly_stats = user_stats.drop(columns=['date'])
+    weekly_stats = weekly_stats.groupby(['userId', 'week']).sum().reset_index()
+
+    # Merge on weekly stats
+    df = df.merge(weekly_stats, on=['userId', 'week'], how='left')
+    df = df.fillna(0)
+
+    # define activity as any comment, post, or zap
+    df['activity'] = (
+        (df['comments'] > 0) | 
+        (df['posts'] > 0) |
+        (df['sats_spent'] > 0) 
+    )
+
+    # Weeks since last activity
+    weeks_since_last_activity = 0
+    curr_user = 0
+    df = df.sort_values(by=['userId', 'week'], ascending=True).reset_index(drop=True)
+    df['weeks_since_last_activity'] = 0
+    for idx, row in df.iterrows():
+        userId = row['userId']
+        activity = row['activity']
+        if userId != curr_user:
+            curr_user = userId
+            weeks_since_last_activity = 0
+        elif activity:
+            weeks_since_last_activity = 0
+        else:
+            weeks_since_last_activity += 1
+        df.at[idx, 'weeks_since_last_activity'] = weeks_since_last_activity
+
+    # find length of each inactive spell
+    df = df.sort_values(by=['userId', 'week'], ascending=False).reset_index(drop=True)
+    length_of_inactivity = 0
+    curr_user = 0
+    df['length_of_inactivity'] = 0
+    for idx, row in df.iterrows():
+        userId = row['userId']
+        activity = row['activity']
+        weeks_since_last_activity = row['weeks_since_last_activity']
+        if userId != curr_user:
+            curr_user = userId
+            length_of_inactivity = weeks_since_last_activity
+        elif activity:
+            length_of_inactivity = 0
+        elif length_of_inactivity==0:
+            length_of_inactivity = weeks_since_last_activity
+        df.at[idx, 'length_of_inactivity'] = length_of_inactivity
+
+    # define a user as inactive if they had more than 8 weeks of inactivity
+    df['inactive'] = df['length_of_inactivity'] > 8
+    df['start_inactive'] = (df['inactive']==True) & (df['weeks_since_last_activity']==1)
+
+    # compute two types of profit, overall and excluding zaps, donations
+    df['profit0'] = df['sats_stacked'] - df['sats_spent']
+    df['profit1'] = df['sats_stacked'] - df['sats_fees'] - df['sats_billing']
+
+    # compute rolling profit 
+    df = rolling_sum(df, group_col='userId', time_col='week', sum_cols=['profit0', 'profit1'], window=8)
+
+    df = df.sort_values(by=['userId', 'week'], ascending=True).reset_index(drop=True)
+    df.to_parquet(filename, index=False)
+    return df
+
 
 # ---- Get post quality analysis data
 # ---- Each row is a unique post (itemId)

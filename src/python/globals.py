@@ -3,11 +3,12 @@ import pandas as pd
 #---- important user ids ----
 
 # user_ids for SN founder and employees
+ad_id = 9     # @ad
 k00b_id = 616 # @k00b
 sn_id = 4502 # @sn
 ek_id = 6030 # @ek
 sox_id = 26458 # @sox
-sn_employee_ids = [k00b_id, sn_id, ek_id, sox_id]
+sn_employee_ids = [ad_id, k00b_id, sn_id, ek_id, sox_id]
 
 # anon
 anon_id = 27
