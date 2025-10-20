@@ -39,7 +39,7 @@ stargazer(
     "log(Items) last 8 weeks"
   ),
   add.lines = list(
-    c("Model", "Logit", "Logit", "Logit", "Lin. Prob."),
+    c("Model", "Logit", "Logit", "Logit", "LPM"),
     c("Week FE", "N", "N", "N", "Y")
   ),
   model.names = FALSE

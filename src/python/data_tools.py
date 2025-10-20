@@ -34,10 +34,10 @@ def find_subowner(df, left_time_col='created_at'):
     return df
 
 # ---- Compute rolling sums of columns
-def rolling_sum(df, group_col, time_col, sum_cols, window):
+def rolling_sum(df, group_col, time_col, sum_cols, window, lag=0):
     df = df.sort_values(by=[group_col, time_col], ascending=True).reset_index(drop=True)
     for col in sum_cols:
-        rolling = df.groupby(group_col)[col].rolling(window=window, min_periods=window).sum().reset_index(drop=True)
+        rolling = df.groupby(group_col)[col].shift(lag).rolling(window=window, min_periods=window).sum().reset_index(drop=True)
         df[f'rolling_{col}'] = rolling
     return df
 
@@ -586,6 +586,7 @@ def get_user_by_week_panel(overwrite=False):
         (df['posts'] > 0) |
         (df['sats_spent'] > 0) 
     )
+    df['items'] = df['posts'] + df['comments']
 
     # Weeks since last activity
     weeks_since_last_activity = 0
@@ -622,16 +623,12 @@ def get_user_by_week_panel(overwrite=False):
             length_of_inactivity = weeks_since_last_activity
         df.at[idx, 'length_of_inactivity'] = length_of_inactivity
 
-    # define a user as inactive if they had more than 8 weeks of inactivity
-    df['inactive'] = df['length_of_inactivity'] > 8
-    df['start_inactive'] = (df['inactive']==True) & (df['weeks_since_last_activity']==1)
-
     # compute two types of profit, overall and excluding zaps, donations
     df['profit0'] = df['sats_stacked'] - df['sats_spent']
     df['profit1'] = df['sats_stacked'] - df['sats_fees'] - df['sats_billing']
 
     # compute rolling profit 
-    df = rolling_sum(df, group_col='userId', time_col='week', sum_cols=['profit0', 'profit1'], window=8)
+    df = rolling_sum(df, group_col='userId', time_col='week', sum_cols=['profit0', 'profit1', 'items'], window=8, lag=1)
 
     df = df.sort_values(by=['userId', 'week'], ascending=True).reset_index(drop=True)
     df.to_parquet(filename, index=False)
