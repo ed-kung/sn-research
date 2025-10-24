@@ -36,7 +36,7 @@ quan_tbl <- stargazer(
 )
 
 outfile <- paste0(LOCAL_PATH, "/results/tbl_posts_cost_reg.tex")
-writeLines(quan_tbl[15:25], outfile)
+writeLines(quan_tbl[c(15:25, 29:30)], outfile)
 
 outfile <- paste0(DATA_PATH, "/posts_cost_reg.csv")
 write.csv(as.data.frame(coef(rquan3)), outfile)
@@ -61,7 +61,7 @@ zaps_tbl <- stargazer(
 )
 
 outfile <- paste0(LOCAL_PATH, "/results/tbl_sats48_cost_reg.tex")
-writeLines(zaps_tbl[15:25], outfile)
+writeLines(zaps_tbl[c(15:25, 29:30)], outfile)
 
 outfile <- paste0(DATA_PATH, "/sats48_cost_reg.csv")
 write.csv(as.data.frame(coef(rzaps3)), outfile)
@@ -81,7 +81,7 @@ comm_tbl <- stargazer(
   add.lines = ADDED_LINES
 )
 outfile <- paste0(LOCAL_PATH, "/results/tbl_comments48_cost_reg.tex")
-writeLines(comm_tbl[15:25], outfile)
+writeLines(comm_tbl[c(15:25, 29:30)], outfile)
 
 outfile <- paste0(DATA_PATH, "/comments48_cost_reg.csv")
 write.csv(as.data.frame(coef(rcomm3)), outfile)
