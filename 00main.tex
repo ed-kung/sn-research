@@ -1,0 +1,103 @@
+\documentclass[12pt,english,hyperfootnotes=false,hidelinks]{article}
+
+%%%% Packages
+\usepackage{lmodern}
+\usepackage{tablefootnote}
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+\usepackage{geometry}
+\geometry{verbose,tmargin=1.25in,bmargin=1.25in,lmargin=1.25in,rmargin=1.25in}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{setspace}
+\usepackage[authoryear]{natbib}
+\usepackage[bottom,multiple]{footmisc}
+\usepackage{geometry}
+\usepackage{adjustbox}
+\usepackage[hyphenbreaks]{breakurl}
+\usepackage{booktabs}
+\usepackage{pdflscape}
+\usepackage{siunitx}
+\usepackage{numprint}
+\usepackage{threeparttable}
+\usepackage{caption}
+\usepackage{babel}
+\usepackage{xcolor}
+\usepackage{longtable}
+\usepackage{afterpage}
+\usepackage{dcolumn}
+\usepackage{multicol}
+\usepackage{amsfonts}
+\usepackage{adjustbox}
+\usepackage{xurl}
+\usepackage{hyperref}
+\usepackage{catchfilebetweentags}
+\usepackage{csquotes}
+\usepackage{framed}
+\usepackage{multirow}
+\usepackage{tikz}
+\usetikzlibrary{decorations.pathreplacing}
+\usepackage{makecell}
+\usepackage{natbib}
+% define check and xmark
+\usepackage{pifont}
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+
+%%%% Other settings
+\captionsetup[table]{skip=0pt}
+\interfootnotelinepenalty=10000
+\newcolumntype{R}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}m{#1}}
+
+\newtheorem{assumption}{Assumption}
+
+%%% Command for extracting numbers
+\newcommand{\gn}[1]{\ExecuteMetaData[results/results.tex]{#1}}
+
+
+
+\title{
+Financial micro-incentives and internet discourse: Evidence from a Bitcoin based discussion platform\thanks{
+Thanks here.
+}
+}
+
+\author{
+    Keyan Kousha\\Stacker News\\kk@stacker.news \and
+    Edward Kung\\CSUN\\edward.kung@csun.edu
+}
+
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\singlespacing
+
+\vspace{-1cm}
+
+\begin{abstract}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+\end{abstract}
+
+
+\noindent{\textit{Keywords}: } \\
+\noindent {\textit{JEL} Classification: } \\
+
+
+\doublespacing
+
+\pagebreak
+
+\input{01intro}
+
+
+\bibliographystyle{chicago}
+\bibliography{98refs}
+
+\end{document}
+
