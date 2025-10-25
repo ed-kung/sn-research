@@ -227,10 +227,27 @@ def get_items(overwrite=False):
     zap_df = zap_df.merge(right, on='itemId', how='inner')
     zap_df['hours_after_post'] = np.ceil((zap_df['zap_time'] - zap_df['item_created_at']).dt.total_seconds() / 3600)
     sats48 = zap_df.loc[zap_df['hours_after_post']<=48].groupby('itemId').agg(
-        sats48 = ('sats', 'sum')
+        sats48 = ('sats', 'sum'),
+        zappers48 = ('userId', 'nunique')
     ).reset_index()
     item_df = item_df.merge(sats48, on='itemId', how='left')
     item_df['sats48'] = item_df['sats48'].fillna(0)
+    item_df['zappers48'] = item_df['zappers48'].fillna(0)
+
+    # attach downzaps in first 48 hours
+    downzap_df = get_downzaps()
+    right = item_df[['itemId', 'created_at']].rename(
+        columns = {'created_at': 'item_created_at'}
+    )
+    downzap_df = downzap_df.merge(right, on='itemId', how='inner')
+    downzap_df['hours_after_post'] = np.ceil((downzap_df['downzap_time'] - downzap_df['item_created_at']).dt.total_seconds() / 3600)
+    downsats48 = downzap_df.loc[downzap_df['hours_after_post']<=48].groupby('itemId').agg(
+        downsats48 = ('downzap_sats', 'sum'),
+        downzappers48 = ('userId', 'nunique')
+    ).reset_index()
+    item_df = item_df.merge(downsats48, on='itemId', how='left')
+    item_df['downsats48'] = item_df['downsats48'].fillna(0)
+    item_df['downzappers48'] = item_df['downzappers48'].fillna(0)
 
     item_df = item_df.sort_values(by='created_at', ascending=True).reset_index(drop=True)
 
@@ -497,6 +514,30 @@ def get_zaps(overwrite=False):
 
     zaps.to_parquet(filename)
     return zaps
+
+
+# ---- Get dataframe on downzaps
+# ---- Each row is a unique downzap (itemId, userId, created_at)
+def get_downzaps(overwrite=False):
+    filename = os.path.join(DATA_PATH, "downzaps.parquet")
+    if (not overwrite) and os.path.exists(filename):
+        return pd.read_parquet(filename)
+
+    df = pd.read_parquet(os.path.join(RAW_DATA_PATH, "itemact.parquet"))
+
+    df = df.loc[df['invoiceActionState'] != 'FAILED'].reset_index(drop=True)
+    df = df.sort_values(by=['itemId','userId','created_at']).reset_index(drop=True)
+    df['sats'] = df['msats'] / 1000
+
+    downzaps = df.loc[df['act']=='DONT_LIKE_THIS'].groupby(['itemId', 'userId', 'created_at']).agg(
+        downzap_sats = ('sats', 'sum')
+    ).reset_index()
+
+    downzaps['downzap_sats'] = downzaps['downzap_sats'].fillna(0)
+    downzaps['created_at'] = downzaps['created_at'].dt.tz_localize('UTC')
+    downzaps = downzaps.rename(columns={'created_at': 'downzap_time'})
+    downzaps.to_parquet(filename)
+    return downzaps
 
 
 # ---- Get daily price data
