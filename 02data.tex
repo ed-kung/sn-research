@@ -1,5 +1,15 @@
-\section{Data} \label{sec_data}
+\section{Data and background} \label{sec_data}
 
-Stacker News was founded in June 2011. On 
+Stacker News was founded and the first post was made on \gn{StartDate}. On \gn{EndDate}, we downloaded a snapshot of the Stacker News database for the purpose of this research. Over this time period, \gn{NumPosts} posts and \gn{NumComments} comments (replies to posts) were made, for a total of \gn{NumItems} items posted by \gn{NumUsers} users across \gn{NumTerritories} territories (or sub-forums). 
 
-To conduct this research, we used a snapshot of the Stacker News database, received on October 6th, 2025. The database contains NumItems items (NumPosts posts and NumComments comments) posted by NumUsers from StartDate to EndDate. 
+\subsection*{The incentive structures on Stacker News}
+
+From its outset, Stacker News was founded with the idea of using Bitcoin micropayments to incentivize quality content and good behavior. Its motto is ``Stacker News is trying to fix online communities with economics.'' There are a number of incentive structures built into the design of Stacker News. 
+
+\paragraph{Pay to post.} First, users must pay to post. The posting cost is denominated in sats and varies by territory.\footnote{One sat (or Satoshi) is equal to 1/100,000,000th of a Bitcoin.} A territory is a sub-forum on Stacker News, usually topic-specific. As of October 2025, the most popular territories are \texttt{bitcoin}, which focuses on discussions about Bitcoin; \texttt{econ}, which focuses on news and discussion about economics; \texttt{Stacker\_Sports}, which focuses on sports discussion; \texttt{AI}, focused on news and discussion about artificial intelligence; and \texttt{Politics\_And\_Law}, focused primarily on politics and current events. 
+
+Territories are created, owned, and operated by individual users on Stacker News. To create a territory, a user simply has to choose a name for the territory, write a description, and pay a monthly cost to Stacker News to maintain that territory. As of October 2025, the monthly cost to operate a territory is 50,000 sats.\footnote{Territory owners can also pay for 12 months at a time for 500,000 sats, or pay for a territory in perpetuity if they pay 3 million sats.} If a territory owner fails to pay the monthly cost, the territory becomes archived. Users are still able to see posts in an archived territory, but they can no longer post in it. Any user (it doesn't have to be the territory founder) can unarchive a territory simply by choosing to pay the monthly cost.
+
+Once a new territory is founded, users can post in that territory by paying a posting fee which is set by the territory owner. The territory owner earns 70\% of the posting fee as revenue, and the other 30\% goes to a daily rewards pool (more on that later). Territory owners are therefore incentivized to choose a posting fee that optimizes between post quantity, post quality, and revenue earned. Users are incentivized to post in the territory that best fits the topic of their post, so as to maximize engagement and zaps, but they may be deterred from posting in the most relevant territory if the posting fee is too high. 
+
+\paragraph{Value for value.} Second, users can directly tip each other for content that they like. These tips are called ``zaps''. Before \gn{NonCustodialDate}
