@@ -1,4 +1,6 @@
+community-layout
 matplotlib
+networkx
 numpy
 pandas
 psycopg2-binary

@@ -50,6 +50,11 @@ IMG_LINK_PATTERN = re.compile(
 def contains_image_or_links(text):
     return bool(IMG_LINK_PATTERN.search(text))
 
+# ---- Extract internal links
+def extract_internal_links(text):
+    pattern = r"https://stacker\.news/items/(\d+)(?:[/?#][^\s]*)?"
+    return re.findall(pattern, text)
+
 # ---- Convert a pandas datetime series to week
 def as_week(x):
     return x.dt.to_period('W-SAT').dt.start_time
