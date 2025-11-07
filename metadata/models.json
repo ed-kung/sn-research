@@ -1,0 +1,16 @@
+{
+    "gpt-4o-mini-2024-07-18": {
+        "name": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.0,
+        "logprobs": true,
+        "input_cost": 0.15,
+        "input_cost_batch": 0.075,
+        "output_cost": 0.60,
+        "output_cost_batch": 0.30
+    },
+    "text-embedding-3-small": {
+        "name": "text-embedding-3-small",
+        "input_cost": 0.02,
+        "input_cost_batch": 0.01
+    }
+}

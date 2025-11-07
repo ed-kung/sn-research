@@ -1,8 +1,10 @@
-community-layout
 matplotlib
 networkx
 numpy
+openai
 pandas
 psycopg2-binary
+pygraphviz
 scikit-learn
+tiktoken
 yaml
