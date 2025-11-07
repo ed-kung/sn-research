@@ -4,3 +4,20 @@ I am conducting this research in public, which is how I envision all future rese
 
 Every once in a while I post updates on the progress of the project. You can find a list of such posts [here](https://stacker.news/SimpleStacker#research-in-public).
 
+
+## Local setup
+
+Create a `config.yaml.local` file in the root directory of this repo. The file contains:
+
+```yaml
+LOCAL_PATH: <path to this repo on your machine>
+RAW_DATA_PATH: <path to the directory where you will dump raw tables>
+DATA_PATH: <path to the directory where you will dump processed data>
+R_PATH: <path to Rscript binary>
+OPENAI_API_KEY: <OpenAI api key>
+DB_CONN_STR: <url of SN database connection>
+```
+
+## Run order
+
+1. `src/notebooks/dump-tables.ipynb`: Dump the raw data tables used for analysis to parquet files

@@ -1,10 +1,35 @@
+# find_subowner
+# rolling_sum
+# contains_image_or_links
+# extract_internal_links
+# as_week, as_date, as_month, as_quarter
+# get_territories (subName)
+# get_territory_transfers (subName, timeStamp, userIdFrom, userIdTo)
+# get_territory_billing_cycles (subName, userId, billing_cycle_start)
+# get_items (itemId)
+# get_posts (itemId)
+# get_comments (itemId)
+# get_territory_post_fee_histories (subName, date)
+# get_territory_by_day_panel (subName, date)
+# get_zaps (itemId, userId, created_at)
+# get_downzaps (itemId, userId, created_at)
+# get_price_daily (timeOpen), get_price_weekly (week)
+# get_user_stats_days (userId, date)
+# get_user_by_week_panel (userId, week)
+# get_post_quality_analysis_data (itemId)
+# get_post_quantity_analysis_data (subName, week)
+# get_internal_digraph
+
+
 import os
 import sys
+from duckdb import df
 import yaml
 import pandas as pd
 import re
 import numpy as np
 from itertools import product
+import networkx as nx
 
 with open("../../config.yaml.local", "r") as f:
     LOCAL_CONFIG = yaml.safe_load(f)
@@ -49,6 +74,8 @@ IMG_LINK_PATTERN = re.compile(
 )
 def contains_image_or_links(text):
     return bool(IMG_LINK_PATTERN.search(text))
+def count_image_or_links(text):
+    return len(IMG_LINK_PATTERN.findall(text))
 
 # ---- Extract internal links
 def extract_internal_links(text):
@@ -684,9 +711,7 @@ def get_user_by_week_panel(overwrite=False):
 # ---- Get post quality analysis data
 # ---- Each row is a unique post (itemId)
 def get_post_quality_analysis_data():
-    zaps = get_zaps()
     posts = get_posts()
-    comments = get_comments()
     prices = get_price_daily()
 
     # select posts to consider
@@ -722,12 +747,22 @@ def get_post_quality_analysis_data():
     posts['sub_subOwner'] = posts['subName'] + '_' + posts['subOwner'].astype(str)
     posts['sub_subOwner_id'], uniques = pd.factorize(posts['sub_subOwner'])
 
+    # generate post metrics
+    posts['text'] = posts['text'].fillna('')
+    posts['num_img_or_links'] = posts['text'].apply(count_image_or_links)
+    posts['num_words'] = posts['text'].apply(lambda x: len(x.split()))
+    posts['is_link_post'] = (posts['url'].notnull()) & (posts['url'] != '')
+    posts['link_only'] = posts['is_link_post'] & (posts['text'].str.strip() == '')
+    
     # keep columns
     keep_cols = [
-        'itemId', 'userId', 
+        'itemId', 'userId',
         'subName', 'subId', 'subOwner', 'sub_subOwner', 'sub_subOwner_id',
         'created_at', 'week', 'weekId', 'btc_price', 
-        'title', 'text', 'cost', 'sats48', 'comments48'
+        'title', 'text', 'url', 
+        'cost', 'sats48', 'comments48', 
+        'downsats48', 'downzappers48',
+        'num_img_or_links', 'num_words', 'is_link_post', 'link_only'
     ]
 
     return posts[keep_cols]
@@ -765,3 +800,31 @@ def get_post_quantity_analysis_data():
     ]
 
     return df[keep_cols]
+
+# ---- Digraph of internal links
+def get_internal_digraph(overwrite=False):
+    filename = os.path.join(DATA_PATH, 'internal_digraph.gml')
+    if (not overwrite) and os.path.exists(filename):
+        return nx.read_gml(filename)
+    items = get_items()
+    selector = (items['invoiceActionState'] != 'FAILED') & (items['text'].notnull()) & (items['text'].str.len() > 0)
+    items = items.loc[selector].reset_index(drop=True)
+    items['num_internal_links'] = items['text'].apply(
+        lambda x: len(extract_internal_links(x))
+    )
+    items_w_links = items.loc[items['num_internal_links'] > 0].reset_index(drop=True)
+
+    DG = nx.DiGraph()
+    for idx, row in items_w_links.iterrows():
+        source_id = int(row['itemId'])
+        internal_links = extract_internal_links(row['text'])
+        for link in internal_links:
+            target_id = int(link)
+            target_row = items.loc[items['itemId'] == target_id]
+            if (not target_row.empty) and (target_id != source_id):
+                DG.add_node(source_id)
+                DG.add_node(target_id)
+                DG.add_edge(source_id, target_id)
+
+    nx.write_gml(DG, filename)
+    return DG

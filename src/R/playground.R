@@ -4,46 +4,24 @@ library(lfe)
 library(yaml)
 library(stargazer)
 library(dplyr)
+library(arrow)
 
 LOCAL_CONFIG <- read_yaml("../../config.yaml.local")
 DATA_PATH <- LOCAL_CONFIG["DATA_PATH"][[1]]
 
-filename <- paste0(DATA_PATH, "/user_analysis_data.csv")
+filename <- paste0(DATA_PATH, "/objective_quality_analysis.parquet")
 
-df <- read.csv(filename)
+df <- read_parquet(filename)
 
-df$inactive <- (df$weeks_since_last_activity>=1) & (df$length_of_inactivity>=4)
-df$became_inactive <- (df$weeks_since_last_activity==1) & (df$length_of_inactivity>=4)
-df$unprofitable <- (df$rolling_profit1 < 0)
-#df$log_rolling_profit <- log(1+df$rolling_profit1)
-df$logprice <- log(df$btc_price)
-df$pgrowth <- df$mom_growth
-df$unprofitable_X_pgrowth <- df$unprofitable * df$pgrowth
-df$logitems <- log(1 + df$rolling_items)
+df$log_sats48 <- log(1+df$sats48)
+df$log_words <- log(1+df$num_words)
+df$log_img_links <- log(1+df$num_img_or_links)
+df$log_in_degree <- log(1+df$in_degree)
+df$log_out_degree <- log(1+df$out_degree)
 
-regdf <- df %>%
-  filter(!inactive | became_inactive) %>%
-  filter(!is.na(rolling_profit1))
+r0 <- lm(log_sats48 ~ log_words + log_img_links + is_link_post + log_in_degree, data=df)
 
-r0 <- glm(became_inactive ~ unprofitable + pgrowth, data=regdf, family = binomial(link = "logit"))
-r1 <- glm(became_inactive ~ unprofitable + pgrowth + unprofitable_X_pgrowth, data=regdf, family = binomial(link = "logit"))
-r2 <- glm(became_inactive ~ unprofitable + pgrowth + unprofitable_X_pgrowth + logitems, data=regdf, family = binomial(link = "logit"))
-r3 <- felm(became_inactive ~ unprofitable + unprofitable_X_pgrowth + logitems | week, data=regdf)
-
-stargazer(
-  r0, r1, r2, r3, type="text",
-  covariate.labels = c(
-    "Unprofitable last 8 weeks",
-    "MoM BTC price growth",
-    "Unprofitable X price growth",
-    "log(Items) last 8 weeks"
-  ),
-  add.lines = list(
-    c("Model", "Logit", "Logit", "Logit", "Lin. Prob."),
-    c("Week FE", "N", "N", "N", "Y")
-  ),
-  model.names = FALSE
-)
+stargazer(r0, type="text")
 
 
 
