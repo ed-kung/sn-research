@@ -14,6 +14,7 @@
 # get_zaps (itemId, userId, created_at)
 # get_downzaps (itemId, userId, created_at)
 # get_price_daily (timeOpen), get_price_weekly (week)
+# get_users (userId)
 # get_user_stats_days (userId, date)
 # get_user_by_week_panel (userId, week)
 # get_post_quality_analysis_data (itemId)
@@ -602,6 +603,51 @@ def get_price_weekly():
         btc_price = ('price_mid', 'mean')
     ).reset_index()
     return weekly
+
+# ---- Get users
+# ---- Each row is a user (userId)
+def get_users(overwrite=False):
+    filename = os.path.join(DATA_PATH, "users.parquet")
+    if (not overwrite) and os.path.exists(filename):
+        return pd.read_parquet(filename)
+    
+    items = get_items()
+    items = items.loc[items['invoiceActionState'] != 'FAILED'].reset_index(drop=True)
+    items['is_post'] = items['parentId'].isnull()
+    items['is_comment'] = items['parentId'].notnull()
+    users = items.groupby('userId').agg(
+        first_item_date = ('created_at', 'min'),
+        n_posts = ('is_post', 'sum'), 
+        n_comments = ('is_comment', 'sum')
+    ).reset_index()
+
+    # first autowithdraw date
+    withdrawal_df = pd.read_parquet(os.path.join(RAW_DATA_PATH, "withdrawal.parquet"))
+    selector = (withdrawal_df['autoWithdraw']) & (withdrawal_df['status'] == 'CONFIRMED')
+    merge_df = withdrawal_df.loc[selector].groupby('userId').agg(
+        first_autowithdraw_date = ('created_at', 'min')
+    ).reset_index()
+    users = users.merge(merge_df, on='userId', how='left')
+
+    # first p2p zap date
+    itemact_df = pd.read_parquet(os.path.join(RAW_DATA_PATH, "itemact.parquet"))
+    invoice_df = pd.read_parquet(os.path.join(RAW_DATA_PATH, "invoice.parquet"))
+    itemact_df = itemact_df.merge(
+        invoice_df[['id','confirmedAt']].rename(columns={'id':'invoiceId'}),
+        how='left', on='invoiceId'
+    )
+    selector = (itemact_df['invoiceId'].notnull()) & \
+               (itemact_df['confirmedAt'].notnull()) & \
+               (itemact_df['act'] == 'TIP')
+    merge_df = itemact_df.loc[selector].groupby('userId').agg(
+        first_p2p_zap_date = ('created_at', 'min')
+    ).reset_index()
+    users = users.merge(merge_df, on='userId', how='left')
+
+    users.to_parquet(filename)
+    return users
+
+
 
 # ---- Get user stats by day
 # ---- Each row is a user/day (userId, date)
