@@ -85,14 +85,25 @@ def extract_internal_links(text):
 
 # ---- Convert a pandas datetime series to week
 def as_week(x):
-    return x.dt.to_period('W-SAT').dt.start_time
+    if type(x)==pd.core.series.Series:
+        return x.dt.to_period('W-SAT').dt.start_time
+    else:
+        return x.to_period('W-SAT').start_time
 def as_date(x):
-    return x.dt.floor('D')
+    if type(x)==pd.core.series.Series:
+        return x.dt.floor('D')
+    else:
+        return x.floor('D')
 def as_month(x):
-    return x.dt.to_period('M').dt.start_time
+    if type(x)==pd.core.series.Series:
+        return x.dt.to_period('M').dt.start_time
+    else:
+        return x.to_period('M').start_time
 def as_quarter(x):
-    return x.dt.to_period('Q').dt.start_time
-
+    if type(x)==pd.core.series.Series:
+        return x.dt.to_period('Q').dt.start_time
+    else:
+        return x.to_period('Q').start_time
 
 # ---- Get dataframe on territories
 # ---- Each row is a unique territory (subName)
@@ -644,9 +655,48 @@ def get_users(overwrite=False):
     ).reset_index()
     users = users.merge(merge_df, on='userId', how='left')
 
+    # get list of user wallets
+    wallet_df = pd.read_parquet(os.path.join(RAW_DATA_PATH, "wallet.parquet"))
+    protocol_df = pd.read_parquet(os.path.join(RAW_DATA_PATH, "walletprotocol.parquet"))
+
+    wallet_df = wallet_df.rename(columns={
+        'id': 'walletId',
+        'templateName': 'walletName'
+    })
+    can_send_df = protocol_df.loc[
+        protocol_df['send']==True
+    ].groupby('walletId').agg(
+        can_send = ('send', 'max')
+    ).reset_index()
+
+    wallet_df = wallet_df.merge(can_send_df, on='walletId', how='left')
+    wallet_df['can_send'] = wallet_df['can_send'].fillna(False)
+
+    users['main_wallet'] = ''
+    users['send_wallets'] = ''
+    users['wallets'] = ''
+    users['n_wallets'] = 0
+    users['n_send_wallets'] = 0
+
+    for idx, row in users.iterrows():
+        user = row['userId']
+        selector = wallet_df['userId']==user
+        my_wallets = wallet_df.loc[selector].sort_values(by='priority', ascending=True)
+        if len(my_wallets) == 0:
+            continue
+        my_main_wallet = my_wallets.iloc[0]['walletName']
+        my_send_wallets = my_wallets.loc[my_wallets['can_send'], 'walletName'].tolist()
+        my_wallets = my_wallets['walletName'].tolist()
+        n_wallets = len(my_wallets)
+        n_send_wallets = len(my_send_wallets)
+        users.at[idx, 'main_wallet'] = my_main_wallet
+        users.at[idx, 'send_wallets'] = ','.join(my_send_wallets)
+        users.at[idx, 'wallets'] = ','.join(my_wallets)
+        users.at[idx, 'n_wallets'] = n_wallets
+        users.at[idx, 'n_send_wallets'] = n_send_wallets
+
     users.to_parquet(filename)
     return users
-
 
 
 # ---- Get user stats by day
@@ -747,7 +797,7 @@ def get_user_by_week_panel(overwrite=False):
     df['profit1'] = df['sats_stacked'] - df['sats_fees'] - df['sats_billing']
 
     # compute rolling profit 
-    df = rolling_sum(df, group_col='userId', time_col='week', sum_cols=['profit0', 'profit1', 'items'], window=8, lag=1)
+    df = rolling_sum(df, group_col='userId', time_col='week', sum_cols=['profit0', 'profit1', 'posts', 'items'], window=8, lag=1)
 
     df = df.sort_values(by=['userId', 'week'], ascending=True).reset_index(drop=True)
     df.to_parquet(filename, index=False)

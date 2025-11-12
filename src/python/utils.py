@@ -37,3 +37,5 @@ def split_to_max_length(text):
         chunks.append(TOKENIZER.decode(chunk_tokens))
     return chunks
 
+def signed_log(x):
+    return np.sign(x)*np.log1p(np.abs(x))

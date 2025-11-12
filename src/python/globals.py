@@ -68,6 +68,14 @@ sub_cost_monthly_post = 50000
 sub_cost_yearly_post = 500000
 sub_cost_perpetual = 3000000
 
+# SN enables autowithdraw
+aw_item_id = 385781
+aw_date = pd.to_datetime("2024-01-12 15:12:29.627000+00:00", utc=True)
+
+# Date when we can start seeing successful p2p invoices
+inv_item_id = 593321
+inv_date = pd.to_datetime("2024-07-01 18:31:27.924000+00:00", utc=True)
+
 # SN goes non-custodial
 nc_item_id = 835465
 nc_date = pd.to_datetime("2025-01-03 19:06:36.050", utc=True)
