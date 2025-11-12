@@ -50,7 +50,7 @@ run_regs <- function(df, yvar) {
 }
 
 run_regs(df1, "attached_recv_wallet")
-
+run_regs(df2, "attached_send_wallet")
 
 
 r1 <- felm(
