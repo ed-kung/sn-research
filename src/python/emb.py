@@ -127,6 +127,9 @@ def get_embedding(text, overwrite=False):
 
 # Function to handle embedding requests including for long texts
 def get_embedding_robust(text, overwrite=False):
+    if len(text) == 0:
+        return get_embedding(text, overwrite=overwrite)
+    
     chunks = split_to_max_length(text)
     chunk_embeddings = []
     for chunk in chunks:
