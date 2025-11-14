@@ -17,7 +17,7 @@ with open('../../config.yaml', 'r') as f:
 LOCAL_PATH = local_config['LOCAL_PATH']
 DATA_PATH = local_config['DATA_PATH']
 
-EMBEDDING_STORE_PATH = os.path.join(DATA_PATH, 'stores', 'embeddings.db')
+EMBEDDING_STORE_PATH = os.path.join(LOCAL_PATH, 'db', 'embeddings.db')
 BATCH_PATH = os.path.join(DATA_PATH, 'batch')
 
 sys.path.append(os.path.join(LOCAL_PATH, 'src', 'python'))
@@ -127,19 +127,16 @@ def get_embedding(text, overwrite=False):
 
 # Function to handle embedding requests including for long texts
 def get_embedding_robust(text, overwrite=False):
-    if token_length(text) <= EMBEDDING_MAX_TOKENS:
-        return get_embedding(text, overwrite=overwrite)
-    else:
-        chunks = split_to_max_length(text)
-        chunk_embeddings = []
-        for chunk in chunks:
-            emb = get_embedding(chunk, overwrite=overwrite)
-            chunk_embeddings.append(emb)
-        chunk_lengths = np.array([token_length(chunk) for chunk in chunks])
-        weights = chunk_lengths / chunk_lengths.sum()
-        chunk_embeddings = np.array(chunk_embeddings)
-        embedding = np.average(chunk_embeddings, axis=0, weights=weights)
-        return embedding.tolist()
+    chunks = split_to_max_length(text)
+    chunk_embeddings = []
+    for chunk in chunks:
+        emb = get_embedding(chunk, overwrite=overwrite)
+        chunk_embeddings.append(emb)
+    chunk_lengths = np.array([token_length(chunk) for chunk in chunks])
+    weights = chunk_lengths / chunk_lengths.sum()
+    chunk_embeddings = np.array(chunk_embeddings)
+    embedding = np.average(chunk_embeddings, axis=0, weights=weights)
+    return embedding.tolist()
 
 # Batch jobs
 def create_batch_job(texts, input_filename, overwrite=False):
@@ -205,16 +202,30 @@ def update_batch_status(batch_id):
         if batch.status == 'completed':
             output_filename = f"{batch_id}_output.jsonl"
             output_file_id = batch.output_file_id
-            output_file_content = openai_client.files.content(output_file_id)
-            output_file_path = os.path.join(BATCH_PATH, output_filename)
-            with open(output_file_path, 'w') as f:
-                f.write(output_file_content.text)
-            update_batch_job(batch_id, 'completed', output_filename)
-            return batch
+            try:
+                output_file_content = openai_client.files.content(output_file_id)
+                output_file_path = os.path.join(BATCH_PATH, output_filename)
+                with open(output_file_path, 'w') as f:
+                    f.write(output_file_content.text)
+                update_batch_job(batch_id, 'completed', output_filename)
+                return batch
+            except Exception as e:
+                print(f"Error retrieving output file for batch {batch_id}: {e}")
+                update_batch_job(batch_id, 'failed')
+                batch.status = 'failed'
+                return batch
         else:
             update_batch_job(batch_id, batch.status)
             return batch
     print(f"Batch job with ID {batch_id} not found.")
+    return None
+
+def fail_all_jobs():
+    # use to mark all current jobs as failed (clean restart)
+    batch_jobs.execute(
+        "UPDATE jobs SET status = 'failed', updated_at = ? WHERE status NOT IN ('written')",
+        (datetime.now(),)
+    )
     return None
 
 def write_batch_to_embedding_store(batch_id, overwrite=False):
