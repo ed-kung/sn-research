@@ -814,7 +814,8 @@ def get_post_quality_analysis_data():
     mask = (posts['invoiceActionState'] != 'FAILED') & \
         (~posts['bio']) & (~posts['freebie']) & (~posts['saloon']) & \
         (posts['subName'].notnull()) & (posts['subName'] != '') & \
-        (~posts['subName'].isin(['jobs', 'ama']))
+        (~posts['subName'].isin(['jobs', 'ama'])) & \
+        (globals.data_end - posts['created_at'] >= pd.Timedelta(hours=48))
     posts = posts.loc[mask].reset_index(drop=True)
 
     # add subOwner info

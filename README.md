@@ -20,4 +20,18 @@ DB_CONN_STR: <url of SN database connection>
 
 ## Run order
 
-1. `src/notebooks/dump-tables.ipynb`: Dump the raw data tables used for analysis to parquet files
+#### Dump tables for analysis
+
+`src/notebooks/dump-tables.ipynb`
+
+Dump the raw data tables used for analysis to parquet files.
+
+#### Pay to post analysis
+
+`src/notebooks/pay-to-post-analysis.ipynb`
+
+
+
+
+
+
