@@ -857,7 +857,7 @@ def get_post_quality_analysis_data():
         'subName', 'subId', 'subOwner', 'sub_subOwner', 'sub_subOwner_id',
         'created_at', 'week', 'weekId', 'btc_price', 
         'title', 'text', 'url', 
-        'cost', 'sats48', 'comments48', 
+        'cost', 'sats48', 'zappers48', 'comments48', 
         'downsats48', 'downzappers48',
         'num_img_or_links', 'num_words', 'is_link_post', 'link_only'
     ]
