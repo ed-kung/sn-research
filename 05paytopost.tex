@@ -26,5 +26,16 @@ It makes sense that users will only be willing to pay a high posting cost if the
 
 Next, we present results when the number of comments in the first 48 hours is used to measure quality instead of the number of zaps. The results are presented in table \ref{tab_comments48_cost_reg}. As with zaps, table \ref{tab_comments48_cost_reg} demonstrates that there is a robust and statistically significant positive relationship between territory posting cost and the number of comments a post receives in the first 48 hours. Table \ref{tab_comments48_cost_reg}  column 4 implies that when territory posting cost doubles, the number of replies a post in that territory is expected to receive in the first 48 hours increases by \gn{Comments48CostDoublingEffect} percent. 
 
-Third, we considre a way of measuring quantity that dpeends
+Now we consider whether territory posting cost also influences the number of posts a territory receives. If users are sensitive to posting cost, then we expect that territory posting fee will be negatively correlated with number of posts. To test this, we run regressions of the following form:
+\begin{align}
+\ln q_{jt} = \beta \ln c_{jt} + \delta_{j} + \gamma_{t} + \varepsilon_{jt} \label{eq_qual_reg}
+\end{align}
+where $j$ indexes a territory and $t$ indexes a week. $q_{jt}$ is the number of posts posted in territory $j$ in week $t$, $c_{jt}$ is territory $j$'s posting fee in week $t$, $\delta_j$ is a set of territory fixed effects, and $\gamma_{t}$ is a set of week fixed effects. The results of this regression, for various combinations of fixed effects, is presented in table \ref{tab_posts_cost_reg}. As expected, there is a robust and statistically significant negative relationship between territory posting cost and the quantity of posts in a territory. Using column 4 as our preferred specification, the results imply that when the posting cost in a territory doubles, the territory can expect to receive \gn{PostsCostDoublingEffect} percent fewer posts in a week. 
+
+Taken together, the results are both surprising and unsurprising. They are unsurprising in the sense that they conform with economic theory: demand curves slope downward (when posting costs go up, number of posts goes down), and signaling theory works (when posting costs go up, higher quality posts are made). They are surprising in the sense that even with such small incentives (the average posting cost is just \gn{AveragePostingCost} sats, or about \$\gn{AveragePostingCostCents} 
+
+: i.e. when posting fees go up, number of posts go down, and users are only willing to pay a higher posting cost if they 
+
+
+
 
