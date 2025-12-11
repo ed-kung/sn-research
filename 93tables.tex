@@ -82,32 +82,45 @@ Robust standard errors in parentheses. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.
 
 \pagebreak
 
-
-
-
 \begin{table}[H]
 \centering
-\caption{Regression of User Exit on Profitability} \label{tab_exit_reg}
+\caption{Determinants of Post Quality} \label{tab_quality_determinants}
 \begin{threeparttable}
-\begin{adjustbox}{width=\textwidth}
-\begin{tabular}{@{\extracolsep{5pt}}lcccc} 
-\\[-1.8ex]\hline 
-\hline \\[-1.8ex] 
- & \multicolumn{4}{c}{\textit{Dependent variable:}} \\ 
-\cline{2-5} 
-\\[-1.8ex] & \multicolumn{4}{c}{Became Inactive} \\ 
-\\[-1.8ex] & (1) & (2) & (3) & (4)\\ 
-\hline \\[-1.8ex] 
-\input{results/tbl_exit_reg} 
-\end{tabular} 
-\end{adjustbox}
-\vspace{-0.7cm}
+\input{results/tbl_quality_determinants.tex}
 \begin{tablenotes}[flushleft]\footnotesize
-\item[] \parbox[t]{\linewidth}{%
-Robust standard errors in parentheses. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.
-}
-\item \textit{Notes:} Regression of users' probability of becoming inactive on profitability and bitcoin price. A user becomes inactive on the week they begin a consecutive 4-week period with no activity. Profitability is measured as the number of sats earned in the last 8 weeks minus the number of sats spent on posting costs and territory billing. Bitcoin price growth is measured as month-on-month price growth. 
+\item \textit{Notes: }
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
+
+
+%\pagebreak
+
+
+
+%\begin{table}[H]
+%\centering
+%\caption{Regression of User Exit on Profitability} \label{tab_exit_reg}
+%\begin{threeparttable}
+%\begin{adjustbox}{width=\textwidth}
+%\begin{tabular}{@{\extracolsep{5pt}}lcccc} 
+%\\[-1.8ex]\hline 
+%\hline \\[-1.8ex] 
+% & \multicolumn{4}{c}{\textit{Dependent variable:}} \\ 
+%\cline{2-5} 
+%\\[-1.8ex] & \multicolumn{4}{c}{Became Inactive} \\ 
+%\\[-1.8ex] & (1) & (2) & (3) & (4)\\ 
+%\hline \\[-1.8ex] 
+%\input{results/tbl_exit_reg} 
+%\end{tabular} 
+%\end{adjustbox}
+%\vspace{-0.7cm}
+%\begin{tablenotes}[flushleft]\footnotesize
+%\item[] \parbox[t]{\linewidth}{%
+%Robust standard errors in parentheses. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.
+%}
+%\item \textit{Notes:} Regression of users' probability of becoming inactive on profitability and bitcoin price. A user becomes inactive on the week they begin a consecutive 4-week period with no activity. Profitability is measured as the number of sats earned in the last 8 weeks minus the number of sats spent on posting costs and territory billing. Bitcoin price growth is measured as month-on-month price growth. 
+%\end{tablenotes}
+%\end{threeparttable}
+%\end{table}
 
