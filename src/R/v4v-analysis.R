@@ -32,7 +32,7 @@ r4 <- felm(hi_quality ~ hi_quality_share + log_prior_zaps | userId + weekId, dat
 
 out_tbl <- stargazer(
   r1, r2, r3, r4, type=TABLE_TYPE,
-  covariate.labels = c("High Quality Share of Prior Zaps", "log(Prior Zaps from All Posts)"),
+  covariate.labels = c("High quality share of prior zaps", "log(Prior paps from all posts)"),
   add.lines = ADDED_LINES
 )
 
