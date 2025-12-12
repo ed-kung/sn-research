@@ -925,3 +925,68 @@ def get_internal_digraph(overwrite=False):
 
     nx.write_gml(DG, filename)
     return DG
+
+# ---- v4v analysis data
+# ---- Each row is a post (itemId)
+def get_v4v_analysis_data(overwrite=False):
+    filename = os.path.join(DATA_PATH, "v4v_analysis_data.parquet")
+    if (not overwrite) and os.path.exists(filename):
+        return pd.read_parquet(filename)
+
+    # Data cleaning main posts data
+    posts = get_posts()
+    posts['week'] = as_week(posts['created_at'])
+
+    mask = (posts['invoiceActionState'] != 'FAILED') & \
+        (~posts['bio']) & (~posts['freebie']) & (~posts['saloon']) & \
+        (posts['subName'].notnull()) & (posts['subName'] != '') & \
+        (~posts['subName'].isin(['jobs', 'ama'])) & \
+        (posts['title'] != 'deleted by author') & \
+        (globals.data_end - posts['created_at'] >= pd.Timedelta(hours=48))
+
+    posts = posts.loc[mask].reset_index(drop=True)
+    posts['text'] = posts['text'].fillna('')
+    posts['num_img_or_links'] = posts['text'].apply(count_image_or_links)
+    posts['num_words'] = posts['text'].apply(lambda x: len(x.split()))
+    posts['is_link_post'] = (posts['url'].notnull()) & (posts['url'] != '')
+    posts['link_only'] = posts['is_link_post'] & (posts['text'].str.strip() == '')
+
+    posts['has_img_or_links'] = posts['num_img_or_links'] > 0
+    posts['no_words'] = posts['num_words'] == 0
+    posts['lo_words'] = (posts['num_words'] > 0) & (posts['num_words'] <= 50)
+    posts['hi_words'] = posts['num_words'] > 50
+
+    posts['hi_quality'] = (posts['hi_words'] & ~posts['is_link_post']) | (posts['is_link_post'] & posts['hi_words'] & posts['has_img_or_links'])
+
+    # Zaps table with posterId and hi_quality flag
+    zaps = get_zaps()
+    zaps = zaps.merge(
+        posts[['itemId', 'hi_quality', 'userId']].rename(columns={'userId': 'posterId'}),
+        on='itemId',
+        how='inner'
+    )
+    zaps = zaps.sort_values(by=['posterId', 'zap_time']).reset_index(drop=True)
+
+    # Calculate amount of zaps from high quality posts, prior to posting
+    posts = posts.sort_values(by=['userId', 'created_at'], ascending=True).reset_index(drop=True)
+    for idx, row in posts.iterrows():
+        userId = row['userId']
+        created_at = row['created_at']
+        mask = (zaps['posterId'] == userId) & (zaps['zap_time'] < created_at) & (zaps['hi_quality'])
+        posts.loc[idx, 'prior_zaps_from_hi_quality'] = zaps.loc[mask, 'sats'].sum()
+        mask = (zaps['posterId'] == userId) & (zaps['zap_time'] < created_at)
+        posts.loc[idx, 'prior_zaps'] = zaps.loc[mask, 'sats'].sum()
+    
+    # generate categorical subId, weekId, and userId
+    posts['subId'], uniques = pd.factorize(posts['subName'])
+    posts['weekId'], uniques = pd.factorize(posts['week'])
+
+    posts.to_parquet(filename, index=False)
+
+    return posts
+
+
+
+
+
+
