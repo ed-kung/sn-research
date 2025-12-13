@@ -1,6 +1,6 @@
 \begin{table}[H]
 \centering
-\caption{The Effect of Posting Cost on Post Quality (Measured by zaps)} \label{tab_sats48_cost_reg}
+\caption{Effect of Posting Cost on Post Quality (Measured by zaps)} \label{tab_sats48_cost_reg}
 \begin{threeparttable}
 \begin{tabular}{@{\extracolsep{5pt}}lcccc} 
 \\[-1.8ex]\hline 
@@ -28,7 +28,7 @@ Robust standard errors in parentheses. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.
 
 \begin{table}[H]
 \centering
-\caption{The Effect of Posting Cost on Post Quality (Measured by comments)} \label{tab_comments48_cost_reg}
+\caption{Effect of Posting Cost on Post Quality (Measured by comments)} \label{tab_comments48_cost_reg}
 \begin{threeparttable}
 \begin{tabular}{@{\extracolsep{5pt}}lcccc} 
 \\[-1.8ex]\hline 
@@ -57,7 +57,7 @@ Robust standard errors in parentheses. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.
 
 \begin{table}[H]
 \centering
-\caption{The Effect of Posting Cost on Post Quantity} \label{tab_posts_cost_reg}
+\caption{Effect of Posting Cost on Post Quantity} \label{tab_posts_cost_reg}
 \begin{threeparttable}
 \begin{tabular}{@{\extracolsep{5pt}}lcccc} 
 \\[-1.8ex]\hline 
@@ -118,6 +118,35 @@ Robust standard errors in parentheses. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.
 \item \textit{Notes:} Linear probability model of whether a user's next post is a high quality post as defined in section \ref{sec_v4v}. The unit of observation is a post.
 \end{tablenotes}
 \end{threeparttable}
+\end{table}
+
+
+\pagebreak
+
+\begin{table}[H]
+\centering
+\caption{Effect of Profitability on User Exit} \label{tab_profitability_analysis}
+\begin{adjustbox}{width=\textwidth}
+\begin{threeparttable}
+\begin{tabular}{@{\extracolsep{5pt}}lcccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{4}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-5} 
+\\[-1.8ex] & \multicolumn{4}{c}{Whether user becomes inactive} \\ 
+\\[-1.8ex] & (1) & (2) & (3) & (4)\\ 
+\hline \\[-1.8ex] 
+\input{results/tbl_profitability_analysis} 
+\end{tabular} 
+\vspace{-0.7cm}
+\begin{tablenotes}[flushleft]\footnotesize
+\item[] \parbox[t]{\linewidth}{%
+Robust standard errors in parentheses. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.
+}
+\item \textit{Notes:} Linear probability model of whether a user becomes inactive in a given week. A user becomes inactive if they start a greater than four week consecutive period of no activity. The unit of observation is a user-week.
+\end{tablenotes}
+\end{threeparttable}
+\end{adjustbox}
 \end{table}
 
 
