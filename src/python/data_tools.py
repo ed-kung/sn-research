@@ -759,20 +759,25 @@ def get_user_by_week_panel(overwrite=False):
 
     # Weeks since last activity
     weeks_since_last_activity = 0
+    weeks_since_account_creation = 0
     curr_user = 0
     df = df.sort_values(by=['userId', 'week'], ascending=True).reset_index(drop=True)
     df['weeks_since_last_activity'] = 0
+    df['account_age'] = 0
     for idx, row in df.iterrows():
         userId = row['userId']
         activity = row['activity']
         if userId != curr_user:
             curr_user = userId
             weeks_since_last_activity = 0
+            weeks_since_account_creation = 0
         elif activity:
             weeks_since_last_activity = 0
         else:
             weeks_since_last_activity += 1
+        weeks_since_account_creation += 1
         df.at[idx, 'weeks_since_last_activity'] = weeks_since_last_activity
+        df.at[idx, 'account_age'] = weeks_since_account_creation
 
     # find length of each inactive spell
     df = df.sort_values(by=['userId', 'week'], ascending=False).reset_index(drop=True)
@@ -792,14 +797,17 @@ def get_user_by_week_panel(overwrite=False):
             length_of_inactivity = weeks_since_last_activity
         df.at[idx, 'length_of_inactivity'] = length_of_inactivity
 
-    # compute two types of profit, overall and excluding zaps, donations
-    df['profit0'] = df['sats_stacked'] - df['sats_spent']
-    df['profit1'] = df['sats_stacked'] - df['sats_fees'] - df['sats_billing']
-
+    # compute types of profit
+    df['profit0'] = df['sats_stacked'] - df['sats_spent'] # any source
+    df['profit1'] = df['sats_tipped'] + df['sats_rewards'] + df['sats_referrals'] + df['sats_one_day_referrals'] - df['sats_fees']
+    
     # compute rolling profit 
     df = rolling_sum(df, group_col='userId', time_col='week', sum_cols=['profit0', 'profit1', 'posts', 'items'], window=8, lag=1)
 
     df = df.sort_values(by=['userId', 'week'], ascending=True).reset_index(drop=True)
+
+    df['weekId'], uniques = pd.factorize(df['week'])
+
     df.to_parquet(filename, index=False)
     return df
 
