@@ -1,0 +1,18 @@
+\section{Profitability and user retention}
+
+We now test our last hypothesis: that consistently unprofitable users are more likely to exit the platform, whereas profitable users are more likely to stay.
+
+To measure profitability, we only consider whether the user is able to earn enough zaps and rewards to cover their posting costs. We do not consider their own zaps to other users as part of their costs, since zapping is entirely optional. Moreover, some users may have altruistic motives to zap, as discussed in the introduction, so greater zapping could indicate a greater commitment to the platform.
+
+We define a user as inactive if they go four or more consecutive weeks without making any posts, any comments, or zapping any items. The first week of inactivity is considered the week they went inactive. Inactive users can become active again, though we treat this event as exogenous. 
+
+The goal of this section is to estimate how user profitability affects the probability of becoming inactive. We estimate linear probability models of the following form:
+\begin{align}
+y_{it} = \beta x_{it} + \gamma_{t} + \epsilon_{it}
+\end{align}
+where $i$ indexes a user and $t$ indexes a week. $y_{it}$ is a binary indicator for whether user $i$ became inactive on week $t$, $x_{it}$ is a binary indicator for whether the user was unprofitable in the last 8 weeks, $\gamma_{t}$ is a week fixed effect to capture global time trends, and $\epsilon_{it}$ is the error term. We hypothesize that $\beta>0$, indicating that users who have been unprofitable are more likely to become inactive.
+
+
+
+
+
