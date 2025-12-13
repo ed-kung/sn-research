@@ -26,27 +26,23 @@ DB_CONN_STR: <url of SN database connection>
 
 Dump the raw data tables used for analysis to parquet files.
 
-#### Get embeddings for subs
-
-`src/notebooks/get-sub-embeddings.ipynb`
-
-Compute embeddings for each territory name. Run with `ESTIMATE_COSTS=True` first to estimate the cost. Then run with `ESTIMATE_COSTS=False, BATCH=True` to submit requests to OpenAI batch API. Check batches periodically with `batch-update-emb.ipynb`. When all batches are done, run with `ESTIMATE_COSTS=False, BATCH=False` to dump embedding results to file.
-
-#### Get embeddings for posts
-
-`src/notebooks/get-post-embeddings.ipynb`
-
-Get embeddings for post titles and post text. See above.
-
 #### Pay to post analysis
 
 `src/notebooks/pay-to-post-analysis.ipynb`
 
 Initial analysis of the impacts of pay to post. Regress zaps in first 48 hours on post cost, comments in first 48 hours on post cost, and weekly number of posts in a territory on territory post costs. 
 
-`src/notebooks/objective-quality-analysis.ipynb`
+#### Value for value analysis
 
-Develop measure of post quality that depends only on ex-ante post content and not on ex-post zaps.
+`src/notebooks/v4v-analysis.ipynb`
+
+Analysis of value-for-value incentives and aggregate post quality over time. Analysis of user learning about what posts receive more zaps and how that affects their posting behavior.
+
+#### Analysis of user profitability and user exit
+
+`src/notebooks/profitability-analysis.ipynb`
+
+Analysis of how user profitability affects the probability of becoming inactive.
 
 
 
