@@ -975,15 +975,24 @@ def get_v4v_analysis_data(overwrite=False):
     )
     zaps = zaps.sort_values(by=['posterId', 'zap_time']).reset_index(drop=True)
 
-    # Calculate amount of zaps from high quality posts, prior to posting
+    # Calculate amount of zaps from high quality posts, prior to posting,
+    # and amount of high quality posts
     posts = posts.sort_values(by=['userId', 'created_at'], ascending=True).reset_index(drop=True)
     for idx, row in posts.iterrows():
         userId = row['userId']
         created_at = row['created_at']
+
         mask = (zaps['posterId'] == userId) & (zaps['zap_time'] < created_at) & (zaps['hi_quality'])
         posts.loc[idx, 'prior_zaps_from_hi_quality'] = zaps.loc[mask, 'sats'].sum()
+
         mask = (zaps['posterId'] == userId) & (zaps['zap_time'] < created_at)
         posts.loc[idx, 'prior_zaps'] = zaps.loc[mask, 'sats'].sum()
+
+        mask = (posts['userId'] == userId) & (posts['created_at'] < created_at) & (posts['hi_quality'])
+        posts.loc[idx, 'prior_hi_quality_posts'] = mask.sum()
+
+        mask = (posts['userId'] == userId) & (posts['created_at'] < created_at)
+        posts.loc[idx, 'prior_posts'] = mask.sum()
     
     # generate categorical subId, weekId, and userId
     posts['subId'], uniques = pd.factorize(posts['subName'])
