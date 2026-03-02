@@ -12,9 +12,10 @@ DATA_PATH <- LOCAL_CONFIG["DATA_PATH"][[1]]
 TABLE_TYPE <- "latex"
 
 ADDED_LINES <- list(
-  c("Territory FE",       "N", "Y", "Y", "Y"),
-  c("Week FE",            "N", "N", "Y", "Y"),
-  c("Territory Owner FE", "N", "N", "N", "Y")
+  c("Territory FE",          "N", "Y", "Y", "Y"),
+  c("Week FE",               "N", "Y", "Y", "Y"),
+  c("Territory Operator FE", "N", "N", "Y", "Y"),
+  c("User FE",               "N", "N", "N", "Y")
 )
 
 qual_file <- paste0(DATA_PATH, "/post_quality_analysis_data.parquet")
@@ -32,10 +33,10 @@ quant_df$log_posts <- log(1 + quant_df$n_posts)
 
 # ---- Quality Regression (Zaps)
 
-rzaps0 <- felm(log_sats48 ~ log_cost, data=qual_df)
-rzaps1 <- felm(log_sats48 ~ log_cost | subId, data=qual_df)
-rzaps2 <- felm(log_sats48 ~ log_cost | subId + weekId, data=qual_df)
-rzaps3 <- felm(log_sats48 ~ log_cost | weekId + sub_subOwner_id, data=qual_df)
+rzaps0 <- felm(log_sats48 ~ log_cost | 0 | 0 | subId, data=qual_df)
+rzaps1 <- felm(log_sats48 ~ log_cost | subId + weekId | 0 | subId, data=qual_df)
+rzaps2 <- felm(log_sats48 ~ log_cost | weekId + sub_subOwner_id | 0 | subId, data=qual_df)
+rzaps3 <- felm(log_sats48 ~ log_cost | weekId + sub_subOwner_id + userId | 0 | subId, data=qual_df)
 
 zaps_tbl <- stargazer(
   rzaps0, rzaps1, rzaps2, rzaps3, type=TABLE_TYPE,
@@ -44,20 +45,25 @@ zaps_tbl <- stargazer(
 )
 
 if (TABLE_TYPE=="latex") {
-  outlines <- zaps_tbl[c(15:25, 29:30)]
+  outlines <- zaps_tbl[c(15:26, 30:31)]
   outfile <- paste0(LOCAL_PATH, "/results/tbl_sats48_cost_reg.tex")
   writeLines(outlines, outfile)
 }
 
-outfile <- paste0(DATA_PATH, "/sats48_cost_reg.csv")
+outfile <- paste0(DATA_PATH, "/sats48_cost_reg_2.csv")
+write.csv(as.data.frame(coef(rzaps2)), outfile)
+
+outfile <- paste0(DATA_PATH, "/sats48_cost_reg_3.csv")
 write.csv(as.data.frame(coef(rzaps3)), outfile)
+
+
 
 # ---- Quality Regression (Comments)
 
-rcomm0 <- felm(log_comments48 ~ log_cost, data=qual_df)
-rcomm1 <- felm(log_comments48 ~ log_cost | subId, data=qual_df)
-rcomm2 <- felm(log_comments48 ~ log_cost | subId + weekId, data=qual_df)
-rcomm3 <- felm(log_comments48 ~ log_cost | weekId + sub_subOwner_id, data=qual_df)
+rcomm0 <- felm(log_comments48 ~ log_cost | 0 | 0 | subId, data=qual_df)
+rcomm1 <- felm(log_comments48 ~ log_cost | subId + weekId | 0 | subId, data=qual_df)
+rcomm2 <- felm(log_comments48 ~ log_cost | weekId + sub_subOwner_id | 0 | subId, data=qual_df)
+rcomm3 <- felm(log_comments48 ~ log_cost | weekId + sub_subOwner_id + userId | 0 | subId, data=qual_df)
 
 comm_tbl <- stargazer(
   rcomm0, rcomm1, rcomm2, rcomm3, type=TABLE_TYPE,
@@ -66,23 +72,33 @@ comm_tbl <- stargazer(
 )
 
 if (TABLE_TYPE=="latex") {
-  outlines <- comm_tbl[c(15:25, 29:30)]
+  outlines <- comm_tbl[c(15:26, 30:31)]
   outfile <- paste0(LOCAL_PATH, "/results/tbl_comments48_cost_reg.tex")
   writeLines(outlines, outfile)
 }
 
-outfile <- paste0(DATA_PATH, "/comments48_cost_reg.csv")
+outfile <- paste0(DATA_PATH, "/comments48_cost_reg_2.csv")
+write.csv(as.data.frame(coef(rcomm2)), outfile)
+
+outfile <- paste0(DATA_PATH, "/comments48_cost_reg_3.csv")
 write.csv(as.data.frame(coef(rcomm3)), outfile)
+
 
 # ---- Quantity Regressions
 
-rquan0 <- felm(log_posts ~ log_cost, data=quant_df)
-rquan1 <- felm(log_posts ~ log_cost | subId, data=quant_df)
-rquan2 <- felm(log_posts ~ log_cost | subId + weekId, data=quant_df)
-rquan3 <- felm(log_posts ~ log_cost | weekId + sub_subOwner_id, data=quant_df)
+ADDED_LINES <- list(
+  c("Territory FE",          "N", "Y", "Y"),
+  c("Week FE",               "N", "Y", "Y"),
+  c("Territory Operator FE", "N", "N", "Y")
+)
+
+
+rquan0 <- felm(log_posts ~ log_cost | 0 | 0 | subId, data=quant_df)
+rquan1 <- felm(log_posts ~ log_cost | subId + weekId | 0 | subId, data=quant_df)
+rquan2 <- felm(log_posts ~ log_cost | weekId + sub_subOwner_id | 0 | subId, data=quant_df)
 
 quan_tbl <- stargazer(
-  rquan0, rquan1, rquan2, rquan3, type=TABLE_TYPE,
+  rquan0, rquan1, rquan2, type=TABLE_TYPE,
   covariate.labels = "log(Posting Cost)",
   add.lines = ADDED_LINES
 )
@@ -93,7 +109,7 @@ if (TABLE_TYPE=="latex") {
   writeLines(outlines, outfile)
 }
 
-outfile <- paste0(DATA_PATH, "/posts_cost_reg.csv")
-write.csv(as.data.frame(coef(rquan3)), outfile)
+outfile <- paste0(DATA_PATH, "/posts_cost_reg_2.csv")
+write.csv(as.data.frame(coef(rquan2)), outfile)
 
 
