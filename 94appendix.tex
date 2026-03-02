@@ -1,0 +1,80 @@
+\section{Proofs}
+
+\subsubsection*{Proof of Proposition \ref{prop_pay_to_post}}
+
+\begin{proof}
+A post idea $(q, \epsilon)$ is posted if and only if $\epsilon > c - V(q)$. Define $\pi(q,c)$ as the probability (over $\epsilon$) that a post of quality is posted when the cost is $c$:
+\begin{align*}
+\pi(q,c) &= P(\epsilon > c - V(q)) 
+\end{align*}
+$\pi(q,c)$ is equivalent to the survival function of $\epsilon|q$, evaluated at $c - V(q)$: $\pi(q,c) = S_{\epsilon|q}(c - V(q) | q)$.
+\begin{enumerate}[label=(\roman*)]
+\item The unconditional probability of posting is:
+\begin{align*}
+P(\text{post}) = \int S_{\epsilon|q}(c-V(q)|q)f_q(q)dq
+\end{align*}
+Since $S_{\epsilon|q}(\cdot|q)$ is a survival function, its first derivative is negative everywhere. An increase in $c$ will therefore reduce the value of $S_{\epsilon|q}(c - V(q))$ at every $q$. Since that is what we are integrating over to get $P(\text{post})$, this strictly reduces $P(\text{post})$. The expected number of posts per unit time is $\gamma P(\text{post})$, so an increase in $c$ strictly reduces the expected number of posts.
+
+\item Take any $c^\prime > c$. The set of ideas that were posted at cost $c$ can be partitioned into two groups:
+\begin{itemize}
+\item \textbf{Surviving posts.} Ideas that are still posted at cost $c^\prime$, i.e. $V(q) + \epsilon > c^\prime$
+\item \textbf{Marginal posts.} Ideas that are posted at $c$ but not at $c^\prime$, i.e. $c < V(q) + \epsilon < c^\prime$.
+\end{itemize}
+By the Law of Iterated Expectations,
+\begin{align*}
+E[q | \text{post at } c] = \alpha E[q | \text{surviving}] + (1-\alpha) E[q | \text{marginal}]
+\end{align*}
+where $\alpha = P(\text{surviving} | \text{post at } c)$. Noting that $E[q|\text{post at } c^\prime] = E[q|\text{surviving}]$, we rearrange the above equation to obtain:
+\begin{align*}
+E[q|\text{post at } c^\prime] - E[q|\text{post at } c] = (1-\alpha) \left( E[q|\text{surviving}] - E[q|\text{marginal}\right)
+\end{align*}
+Thus, to show that expected post quality is increasing in $c$, it suffices to show that the expected quality of the surviving posts is always higher than the expected quality of the marginal posts. 
+
+To demonstrate this, it is sufficient to establish that for any $q_2 > q_1$, the ratio $\pi(q_2,c)/\pi(q_1,c)$ is strictly increasing in $c$. Intuitively, this says that as costs rise, higher quality posts retain a larger share of the posting probability relative to lower quality ideas. This would imply that the marginal posts are tilted towards lower quality than surviving posts.
+
+We write:
+\begin{align*}
+\frac{\pi(q_2,c)}{\pi(q_1,c)} = \frac{S_{\epsilon|q}(c-V(q_2)|q_2)}{S_{\epsilon|q}(c-V(q_1)|q_1)} \label{eq_prob_ratio}
+\end{align*}
+Define the hazard rate: $h(\epsilon|q) = f_{\epsilon|q}(\epsilon|q) / S_{\epsilon|q}(\epsilon|q)$. Differentiating $\pi(q_2,c)/\pi(q_1,c)$ with respect to $c$ shows us that the ratio is increasing in $c$ if and only if:
+\begin{align*}
+h(c - V(q_1) | q_1) > h(c - V(q_2) | q_2)
+\end{align*}
+The proof now proceeds in two parts. 
+
+\paragraph{Claim 1.} First, we show that $h(\epsilon | q_1) \geq h(\epsilon | q_2)$ for any $q_2 > q_1$. By the MLRP, for any $t > \epsilon$, we have that $\ell(t; q_1, q_2) \geq \ell(\epsilon; q_1, q_2)$, which rearranges to:
+\begin{align*}
+f_{\epsilon|q}(t|q_2) f_{\epsilon|q}(\epsilon|q_1) \geq f_{\epsilon|q}(\epsilon|q_2) f_{\epsilon|q}(t|q_1)
+\end{align*}
+Integrating both sides over $t$ from $\epsilon$ to $\infty$ gives us:
+\begin{align*}
+S_{\epsilon|q}(\epsilon|q_2) f_{\epsilon|q}(\epsilon|q_1) \geq S_{\epsilon|q}(\epsilon|q_1) f_{\epsilon|q}(\epsilon|q_2)
+\end{align*}
+which rearranges to $h(\epsilon|q_1) \geq h(\epsilon | q_2)$ as was to be demonstrated.
+
+\paragraph{Claim 2.} Now, we show that $h(\epsilon|q)$ is increasing in $\epsilon$ for each $q$. Take the derivative of $h(\epsilon|q)$ with respect to $\epsilon$. The sign is equal to the sign of:
+\begin{align*}
+f_{\epsilon|q}(\epsilon|q)^2 + f^\prime_{\epsilon|q}(\epsilon|q) S_{\epsilon|q}(\epsilon|q)
+\end{align*}
+When $f^\prime_{\epsilon|q}(\epsilon|q) \geq 0$, this is immediately positive. When $f_{\epsilon|q}^\prime(\epsilon|q)<0$, we rely on the log-concavity property. Since $f_{\epsilon|q}(\cdot)$ is log-concave, the following holds for every $t > \epsilon$:
+\begin{align*}
+\ln f_{\epsilon|q} (t|q) < \ln f_{\epsilon|q}(\epsilon|q) + (t-\epsilon) \frac{f_{\epsilon|q}^\prime(\epsilon|q)}{f_{\epsilon|q}(\epsilon|q)}
+\end{align*}
+Exponentiating both sides:
+\begin{align*}
+f_{\epsilon|q} (t|q) < f_{\epsilon|q}(\epsilon|q) \exp\left[ (t-\epsilon) \frac{f_{\epsilon|q}^\prime(\epsilon|q)}{f_{\epsilon|q}(\epsilon|q)} \right]
+\end{align*}
+Now integrating over $t$ from $\epsilon$ to $\infty$:
+\begin{align*}
+S_{\epsilon|q} (\epsilon | q) &< f_{\epsilon|q}(\epsilon|q) \int_{\epsilon}^\infty \exp\left[ (t-\epsilon) \frac{f_{\epsilon|q}^\prime(\epsilon|q)}{f_{\epsilon|q}(\epsilon|q)} \right] dt \\
+& = - \frac{f_{\epsilon|q}(\epsilon|q)^2}{f^\prime_{\epsilon|q}(\epsilon|q)}
+\end{align*}
+Since $f^\prime_{\epsilon|q}(\epsilon|q) < 0$, this can be rearranged to:
+\begin{align*}
+f_{\epsilon|q}(\epsilon|q)^2 + f^\prime_{\epsilon|q}(\epsilon|q) S_{\epsilon|q}(\epsilon|q) > 0
+\end{align*}
+which was to be demonstrated. Thus, $h(\epsilon|q)$ is strictly increasing in $\epsilon$ for all $q$.
+
+By the monotonicity assumption, $c - V(q_1) > c - V(q_2)$. By Claim 2, this implies that $h(c - V(q_1)|q_1) > h(c-V(q_2)|q_1)$. By Claim 1, $h(c-V(q_2) | q_1) \geq h(c-V(q_2) | q_2)$. Together, we have $h(c - V(q_1)|q_1) > h(c-V(q_2)|q_2)$, which was to be demonstrated. 
+\end{enumerate}
+\end{proof}

@@ -4,32 +4,39 @@ In this section, we consider our first hypothesis: whether higher posting costs 
 
 \paragraph{Model.} We envision a model in which a user receives ``post ideas'' as a Poisson arrival process with rate $\gamma$. Post ideas arrive with a quality level $q$, which affects how other users respond to the post, and an intrinsic motivation to post it, $\epsilon$. The level of internal motivation may be correlated with post quality, and they are drawn from a joint probability density function $f(q,\epsilon)$. We allow different users to draw from different distributions of $(q,\epsilon)$, but for now we focus on the decisions of a single user.
 
-By Bayes' Rule, $f(q, \epsilon) = f_{\epsilon|q} (\epsilon | q) f_q (q)$, where $f_{\epsilon|q}(\cdot)$ is the conditional density of $\epsilon$ given $q$, and $f_q(\cdot)$ is the marginal density of $q$. We assume that $f_{\epsilon|q}(\cdot)$ weakly satisfies the monotone likelihood ratio property in $\epsilon$ with respect to $q$:
+By Bayes' Rule, $f(q, \epsilon) = f_{\epsilon|q} (\epsilon | q) f_q (q)$, where $f_{\epsilon|q}(\cdot)$ is the conditional density of $\epsilon$ given $q$, and $f_q(\cdot)$ is the marginal density of $q$. We assume that $f_{\epsilon|q}(\cdot)$ is strictly log-concave and weakly satisfies the monotone likelihood ratio property in $\epsilon$ with respect to $q$:
 
-\begin{assumption}[Monotone Likelihood Ratio Property]
+\begin{assumption}[Log Concavity]\label{asm_logconcavity}
+For each $q$, $f_{\epsilon|q}(\cdot | q)$ is strictly log-concave; that is, $\ln f_{\epsilon|q} (\epsilon | q)$ is strictly concave in $\epsilon$.
+\end{assumption}
+\begin{assumption}[Monotone Likelihood Ratio Property]\label{asm_mlrp}
 For any $q_2 > q_1$, the likelihood ratio of the conditional densities,
 \begin{align*}
 \ell(\epsilon;q_1, q_2) = \frac{f_{\epsilon|q}(\epsilon|q_2)}{f_{\epsilon|q}(\epsilon|q_1)}
 \end{align*}
 is weakly increasing in $\epsilon$.
 \end{assumption}
-\noindent \emph{Remark.} Assumption 1 is a non-negative dependence condition between post quality $q$ and intrinsic motivation $\epsilon$. Informally, it says that higher quality ideas tend to come with (weakly) higher intrinsic desire to post: when $q$ is higher, the distribution of $\epsilon$ shifts to the right. Independence between $\epsilon$ and $q$ is allowed as a special case, but the assumption rules out systematic negative dependence. In our context, this means that users who receive a high quality post idea are also (weakly) more likely to feel a strong intrinsic desire to post it. As we shall document later, this is consistent with users' self reported perceptions of their own motivations. \hfill \qedsymbol
+\noindent \emph{Remark.}  Assumption \ref{asm_logconcavity} limits the heaviness of the tail of the motivation distribution. Intuitively, it ensures that the extreme tail of the motivation distribution is not thick enough to swamp quality selection effects at very high posting costs. It is not a strong assumption, as it is satisfied by most commonly used distributional families, including the normal and logistic distributions.\footnote{Weaker, local conditions about the hazard rate in the neighborhood of the current posting cost would also suffice, but we state the stronger condition of global log-concavity for simplicity. Moreover, strict log-concavity is assumed for simplicity, but it suffices to assume either strict log-concavity or strict monotone likelihood ratio property; we do not need strictness for both.}
+
+Assumption \ref{asm_mlrp} is a non-negative dependence condition between post quality $q$ and intrinsic motivation $\epsilon$. Informally, it says that higher quality ideas tend to come with (weakly) higher intrinsic desire to post: when $q$ is higher, the distribution of $\epsilon$ shifts to the right. Independence between $\epsilon$ and $q$ is allowed as a special case, but the assumption rules out systematic negative dependence. In our context, this means that users who receive a high quality post idea are also (weakly) more likely to feel a strong intrinsic desire to post it. As we shall document later, this is consistent with users' self reported perceptions of their own motivations. \hfill \qedsymbol
 
 ~
 
 \noindent Once a post is made, zaps arrive according to a Poisson process. Both the arrival rate of zaps and the amount of each zap are dependent on the quality of the post, $q$. Let $\lambda(q)$ be the arrival rate as a function of $q$, and let $g(z|q)$ be the probability density function of the zap amount conditional on $q$. 
 
-Supposing the user has a discount factor of $\rho$, the expected present value of the Poisson stream of zaps is equal to:\footnote{Please refer to the appendix for a derivation.}
+Supposing the user has a discount factor of $\rho$, the expected present value of the Poisson stream of zaps is equal to:\footnote{This follows from $V(q) = \int_{0}^{\infty} e^{-\rho t} \lambda(q) E[z|q] dt$.}
 \begin{align}
-V(q) = \frac{\lambda(q)}{\rho} E \left[z | q\right]
+V(q) = \frac{\lambda(q)}{\rho} E \left[z | q\right] \label{eq_V}
 \end{align}
 We assume that $V(q)$ is continuous and strictly increasing in $q$, which merely says that the expected present value of zaps is higher for higher quality posts:
 
-\begin{assumption}
+\begin{assumption}[Monotone Returns to Quality]\label{asm_monotonicity}
 $V(q) = \frac{\lambda(q)}{\rho} E[z|q]$ is continuous and strictly increasing in $q$.
 \end{assumption}
 
-The user will make the post if their expected present value of zaps plus their intrinsic motivation is greater than the posting cost $c$:
+~
+
+\noindent  The user will make the post if their expected present value of zaps plus their intrinsic motivation is greater than the posting cost $c$:
 \begin{align}
 \text{Post} = 1 \text{ if } V(q) + \epsilon > c \text{ and } 0 \text{ otherwise }
 \end{align}
@@ -37,53 +44,24 @@ From the perspective of the user, $c$ is fixed and known at the time of the post
 
 We now demonstrate conditions under which an increase in posting cost $c$ will lead to fewer posts, but higher quality posts.
 
-\begin{proposition}
-Suppose assumptions 1 and 2 hold. Then an increase in $c$:
+\begin{proposition} \label{prop_pay_to_post}
+Suppose Assumptions \ref{asm_logconcavity}-\ref{asm_monotonicity} hold. Then an increase in $c$:
 \begin{enumerate}[label=(\roman*)]
 \item strictly decreases the probability that the post idea is posted, and
 \item strictly increases the expected quality of posts, conditional on posting.
 \end{enumerate}
 \end{proposition}
 
-\begin{proof}
-A post idea $(q,\epsilon)$ is posted if and only if $\epsilon > c - V(q)$. Let $S(\epsilon|q) = \text{Pr}\left(\epsilon^\prime > \epsilon | q \right)$ denote the conditional survival function of $\epsilon$ given $q$, and let $h(q)$ denote the marginal density of $q$.
+\noindent \emph{Remark.} A proof is provided in the appendix. Proposition \ref{prop_pay_to_post} implies that when posting cost increases, users are less likely to post, but that when they do post, the average quality of the post is higher. Although the proposition is stated from the perspective of a single user, we note that as long as the global joint distribution of $(q,\epsilon)$ holds to Assumptions \ref{asm_logconcavity} and \ref{asm_mlrp}, and if Assumption \ref{asm_monotonicity} also holds for all users, then Proposition \ref{prop_pay_to_post} applies in the aggregate, even if users have heterogeneous marginal densities for $q$ and $\epsilon$. 
 
-The probability of posting conditional on receiving an idea is:
-\begin{align*}
-P(c) = \int S(c-V(q) | q) h(q) dq
-\end{align*}
-
-\begin{enumerate}[label=(\roman*)]
-\item Increasing $c$ raises $c - V(q)$ for every $q$. Since $S(\cdot | q)$ is strictly decreasing, $S(c - V(q) | q)$ strictly falls for all $q$, so $P(c)$ strictly falls. Expected posts per unit of time are $\gamma P(c)$, which strictly decreases.
-
-\item Expected quality conditional on posting is:
-\begin{align*}
-E[q| \text{post},c] = \frac{\int q S(c - V(q) | q) h(q) dq}{\int S(c - V(q) | q) h(q)dq}
-\end{align*}
-Taking the derivative with respect to $c$, the sign of $\frac{d}{dc} E[q|\text{post},c]$ is equal to the sign of:
-\begin{align*}
-& \left[ \int q f(c - V(q) | q)h(q) dq \right] \left[\int S(c - V(q) | q) h(q) dq \right] \\
-& - \left[ \int q S(c - V(q) | q) h(q) dq \right]\left[\int f(c - V(q)|q) h(q) dq \right] 
-\end{align*}
-where $f(\epsilon | q)$ is the conditional density of $\epsilon$ given $q$, and we have used the property:
-\begin{align*}
-\frac{\partial}{\partial c} S(c - V(q) | q) = -f(c - V(q) | q)
-\end{align*}
-\end{enumerate}
-
-\end{proof}
+The result of Proposition \ref{prop_pay_to_post} extends to a setting with multiple territories. Users post in the territory $j$ that maximizes $V_j(q_j) + \epsilon_j - c_j$, provided it is positive. When territory $j$ raises its posting cost $c_j$, users' outside options are unaffected, so the same logic applies: as long as the population-level joint distribution of quality and motivation within each territory satisfies Assumptions \ref{asm_logconcavity}-\ref{asm_monotonicity}, a territory that raises its posting cost will see fewer but higher quality posts. \hfill \qedsymbol
 
 
-When a post idea arrives it has a quality level $q$, which affects how other users respond to the post, and the user has an intrinsic motivation to post it, $\epsilon$. 
+~
 
+\paragraph{Evidence.} To empirically test the predictions of Proposition \ref{prop_pay_to_post},
 
-The joint probability density function of $(q,\epsilon)$ is $f(q,\epsilon)$. We assume that $q$ and $\epsilon$ are \emph{strictly affiliated}. 
-
-
-
-
-
-To test this, we consider two measures of post quality: 1) the number of sats the post earns on zaps in the first 48 hours of posting; and 2) the number of replies the post generates in the first 48 hours. We focus on the first 48 hours so as not to advantage older posts in the quality measure, and also because \gn{Sats48} percent of all sats and \gn{Comments48} percent of all comments are earned within the first 48 hours.
+we consider two measures of post quality: 1) the number of sats the post earns on zaps in the first 48 hours of posting; and 2) the number of replies the post generates in the first 48 hours. We focus on the first 48 hours so as not to advantage older posts in the quality measure, and also because \gn{Sats48} percent of all sats and \gn{Comments48} percent of all comments are earned within the first 48 hours.
 
 In addition, we apply the following sample selection criteria. We do not include posts in the \texttt{AMA} territory or the \texttt{jobs} territory because these  territories seem to operate on different incentive structures than the other ones.\footnote{\texttt{AMA} is a territory where influential people can make ``Ask Me Anything'' posts. Because these posters are influential, posts in the \texttt{AMA} territory earn an unusually large amount of sats, and the posters are unlikely to be motivated by posting costs. \texttt{jobs} is a territory run by Stacker News in which companies can make job advertisements.} We also do not include a number of special post types that do not follow normal posting rules.\footnote{These include profile posts, which users can post and edit for free, ``saloon'' posts, which are daily discussion threads posted by Stacker News, and freebies---a limited number of reduced-visibility posts that users are allowed to make for free.} Lastly, we do not include any posts made in territories by the owner of the territory. Since 70\% of posting costs go to the territory owner, the incentives for territory owners to post in their own territories differ from that of non-owners. 
 
