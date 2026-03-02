@@ -1,6 +1,6 @@
 \begin{table}[H]
 \centering
-\caption{Effect of Posting Cost on Post Quality (Measured by zaps)} \label{tab_sats48_cost_reg}
+\caption{Effect of Posting Cost on Post Quality} \label{tab_sats48_cost_reg}
 \begin{threeparttable}
 \begin{tabular}{@{\extracolsep{5pt}}lcccc} 
 \\[-1.8ex]\hline 
@@ -15,40 +15,40 @@
 \vspace{-0.7cm}
 \begin{tablenotes}[flushleft]\footnotesize
 \item[] \parbox[t]{\linewidth}{%
-Robust standard errors in parentheses. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.
+\hfill * $p<0.1$, ** $p<0.05$, *** $p<0.01$.
 }
-\item \textit{Notes:} Regression of number of sats a post earns in the first 48 hours on posting cost. The unit of observation is a post.
+\item \textit{Notes:} Regression of number of sats a post earns in the first 48 hours on posting cost. The unit of observation is a post. Standard errors are clustered by territory.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
 
 
-\pagebreak
-
-
-\begin{table}[H]
-\centering
-\caption{Effect of Posting Cost on Post Quality (Measured by comments)} \label{tab_comments48_cost_reg}
-\begin{threeparttable}
-\begin{tabular}{@{\extracolsep{5pt}}lcccc} 
-\\[-1.8ex]\hline 
-\hline \\[-1.8ex] 
- & \multicolumn{4}{c}{\textit{Dependent variable:}} \\ 
-\cline{2-5} 
-\\[-1.8ex] & \multicolumn{4}{c}{log(Comments)} \\ 
-\\[-1.8ex] & (1) & (2) & (3) & (4)\\ 
-\hline \\[-1.8ex] 
-\input{results/tbl_comments48_cost_reg} 
-\end{tabular} 
-\vspace{-0.7cm}
-\begin{tablenotes}[flushleft]\footnotesize
-\item[] \parbox[t]{\linewidth}{%
-Robust standard errors in parentheses. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.
-}
-\item \textit{Notes:} Regression of number of comments a post generates in the first 48 hours on posting cost. The unit of observation is a post.
-\end{tablenotes}
-\end{threeparttable}
-\end{table}
+%\pagebreak
+%
+%
+%\begin{table}[H]
+%\centering
+%\caption{Effect of Posting Cost on Post Engagement} \label{tab_comments48_cost_reg}
+%\begin{threeparttable}
+%\begin{tabular}{@{\extracolsep{5pt}}lcccc} 
+%\\[-1.8ex]\hline 
+%\hline \\[-1.8ex] 
+% & \multicolumn{4}{c}{\textit{Dependent variable:}} \\ 
+%\cline{2-5} 
+%\\[-1.8ex] & \multicolumn{4}{c}{log(Comments)} \\ 
+%\\[-1.8ex] & (1) & (2) & (3) & (4)\\ 
+%\hline \\[-1.8ex] 
+%\input{results/tbl_comments48_cost_reg} 
+%\end{tabular} 
+%\vspace{-0.7cm}
+%\begin{tablenotes}[flushleft]\footnotesize
+%\item[] \parbox[t]{\linewidth}{%
+%\hfill * $p<0.1$, ** $p<0.05$, *** $p<0.01$.
+%}
+%\item \textit{Notes:} Regression of number of comments a post generates in the first 48 hours on posting cost. The unit of observation is a post. Standard errors are clustered by territory.
+%\end{tablenotes}
+%\end{threeparttable}
+%\end{table}
 
 
 \pagebreak
@@ -59,22 +59,22 @@ Robust standard errors in parentheses. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.
 \centering
 \caption{Effect of Posting Cost on Post Quantity} \label{tab_posts_cost_reg}
 \begin{threeparttable}
-\begin{tabular}{@{\extracolsep{5pt}}lcccc} 
+\begin{tabular}{@{\extracolsep{5pt}}lccc} 
 \\[-1.8ex]\hline 
 \hline \\[-1.8ex] 
- & \multicolumn{4}{c}{\textit{Dependent variable:}} \\ 
-\cline{2-5} 
-\\[-1.8ex] & \multicolumn{4}{c}{log(Posts)} \\ 
-\\[-1.8ex] & (1) & (2) & (3) & (4)\\ 
+ & \multicolumn{3}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-4} 
+\\[-1.8ex] & \multicolumn{3}{c}{log(Posts)} \\ 
+\\[-1.8ex] & (1) & (2) & (3) \\ 
 \hline \\[-1.8ex] 
 \input{results/tbl_posts_cost_reg} 
 \end{tabular} 
 \vspace{-0.7cm}
 \begin{tablenotes}[flushleft]\footnotesize
 \item[] \parbox[t]{\linewidth}{%
-Robust standard errors in parentheses. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.
+\hfill * $p<0.1$, ** $p<0.05$, *** $p<0.01$.
 }
-\item \textit{Notes:} Regression of number of posts in a territory on posting cost for that week. The unit of observation is a territory-week.
+\item \textit{Notes:} Regression of number of posts in a territory on posting cost for that week. The unit of observation is a territory-week. Standard errors are clustered by territory.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
