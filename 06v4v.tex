@@ -1,8 +1,46 @@
 \section{Value-for-value incentives and content quality}\label{sec_v4v}
 
-We now consider our second hypothesis: that the types of content better rewarded by zaps will increase in prevalence over time as users learn that these kinds of content are better rewarded.
+We now consider our second hypothesis: that the types of content better rewarded by zaps will increase in prevalence over time as users learn that these kinds of content are better rewarded. As in the previous section, we first extend the model of posting behavior to account for effort and learning, then we test the empirical predictions of the model.
 
-To test this hypothesis, we first need a method for categorizing posts into different quality types. Although many classification schemes could be considered, we opted for the simplest approach of a binary classification into ``high quality'' and ``low quality'' posts based on transparently observable content characteristics. The simple and transparent classification scheme assists with the interpretability of the results.\footnote{In results available upon request, we have also shown that the same qualitative results hold when using a more sophisticated classifier of content quality based on semantic embeddings.}
+\paragraph{Model.} We extend the model from Section \ref{sec_pay_to_post} to account for effort. As before, opportunities to post still arrive as a Poisson process with rate $\gamma$. But before observing $(q,\epsilon)$, the user first decides how much effort to exert in crafting the post. Effort affects the distribution of post quality and intrinsic motivation, $f(q,\epsilon;e)$ (users may be more motivated to post if they've exerted a lot of effort). The cost of exerting effort is $\kappa(e)$ with $\kappa(0)=0$ and $\kappa^\prime(e)>0$.  The user's expected utility conditional on effort is:
+\begin{align*}
+U(e) = E_{q,\epsilon|e}\left[ \max \left\{ V(q) -c+\epsilon,0  \right\}\right] - \kappa(e)
+\end{align*}
+Without uncertainty, the model would be equivalent to the one presented in Section \ref{sec_pay_to_post}, just with the distribution of $(q,\epsilon)$ moderated by the optimal effort level. We therefore assume that users have uncertainty over the returns to quality. That is, let:
+\begin{align}
+V(q) = \exp\left(\theta q\right)  \label{eq_Vq_exp_theta_q}
+\end{align}
+where users have uncertainty over $\theta$. Note that this is without loss of generality because $q$ has no natural units. 
+
+Given that users are uncertain about $\theta$, they must infer it from their received zaps relative to quality. We assume that users observe $q$. Let $z_i$ be the zaps received within a fixed time period, e.g. 48 hours, for a specific post $i$.  $z_i$ is a noisy signal proportional to $V(q_i)$, and therefore:
+\begin{align}
+\ln z_i = \theta + q_i + \text{noise}  \label{eq_zi}
+\end{align}
+
+Now let a user have a posting history of posts indexed by $i=1,\ldots,N$. An unbiased estimator for $\theta$ is:
+\begin{align}
+\hat{\theta} = \frac{1}{N} \sum_{i=1}^N \ln z_i - q_i
+\end{align}
+That is, the user's unbiased estimate for $\theta$ is the average of their posts' zap ``surprise'', i.e. how much additional zapping it received over and above its baseline quality level.\footnote{This assumes diffuse priors; if the user had a more precise prior, their posterior mean would still be linear in $\frac{1}{N}\sum \ln z_i - q_i$.}
+
+We can now demonstrate that effort exertion is increasing in $\hat{\theta}$ and that, as a corollarly, the expected quality of the next post is increasing in $\hat{\theta}$.
+
+\begin{proposition}\label{prop_v4v}
+Let $i=1,\ldots,N$ index a user's previously made posts. Let $q_i$ denote the quality of those posts, let $z_i \propto V(q_i)$ be a noisy signal proportional to the present value of zaps that post $i$ receives, and let $\hat{\theta} = \frac{1}{N} \sum \ln z_i - q_i$. Furthermore, assume that $F(q | \epsilon;e)$ satisfies FOSD in $e$, conditional on $\epsilon$. Then, optimal effort is weakly increasing in $\hat{\theta}$.  
+\end{proposition}
+
+\begin{proof}
+A proof is provided in the appendix.
+\end{proof}
+
+\noindent \emph{Remark.} Since $\hat{\theta}$ is the average of the zap surprises across previous posts, Proposition \ref{prop_v4v} suggests that we can test for the presence of learning by regressing the quality of a user's next post on the average of zap surprises for all prior posts made by that user. Doing so would require a measure of post quality $q_i$ which is not equivalent to the zap amount received by that post. Equation \eqref{eq_zi} suggests a parsimonious model for estimating $q_i$ for each post:
+\begin{align}
+\ln z_i = \underbrace{X_i \beta}_{q_i} + \underbrace{\theta + \text{noise}}_{\text{surprise}} \label{eq_lnzi_reg}
+\end{align}
+Equation \eqref{eq_lnzi_reg} suggests that zap amount can be regressed on a vector of objective post measurements ($X_i$), such as number of words, presence of links and images, and semantic embeddings. We can then construct an objective measure of post quality for all posts using $\hat{q}_i = X_i \hat{\beta}$. To test for the presence of learning, we would simply regress post quality on the average of zap surprises for that user's previously made posts, and hypothesize a positive coefficient.
+
+
+\paragraph{Evidence of learning.} To test this hypothesis, we first need a method for categorizing posts into different quality types. Although many classification schemes could be considered, we opted for the simplest approach of a binary classification into ``high quality'' and ``low quality'' posts based on transparently observable content characteristics. The simple and transparent classification scheme assists with the interpretability of the results.\footnote{In results available upon request, we have also shown that the same qualitative results hold when using a more sophisticated classifier of content quality based on semantic embeddings.}
 
 We label posts as ``high'' or ``low'' quality based on three easily observable post characteristics: the number of words in the post, whether the post body contains images or links, and whether the post is a ``link post''. On Stacker News, there are two main types of posts: ``discussion posts'' and ``link posts''. There is no difference between the two in terms of costs. The only technical difference between a link post and a discussion post is that a link post contains a URL next to the title of the post. Users of Stacker News generally consider link posts to be of lower quality than discussion posts because link posts usually reference someone else's work and is less likely to contain original content. The most common type of post on Stacker News is a link post with no text in the post body, i.e. a post that points to another URL with no additional commentary. Users \emph{can} add text to the body of a link post. The most common reasons for doing this are to add quotations from the linked URL (to preview the linked content), or to add the user's own commentary regarding the linked URL. When users add their own commentary, link posts tend to be better rewarded than if the user only adds quotations or if the user doesn't add any text to the post body.
 
