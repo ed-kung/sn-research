@@ -39,3 +39,16 @@ def split_to_max_length(text):
 
 def signed_log(x):
     return np.sign(x)*np.log1p(np.abs(x))
+
+def stars(coef, serr):
+    if serr == 0:
+        return '***'  # Avoid division by zero; treat as highly significant
+    t_stat = np.abs(coef / serr)
+    if t_stat > 2.576:
+        return '***'  # p < 0.01
+    elif t_stat > 1.96:
+        return '**'   # p < 0.05
+    elif t_stat > 1.645:
+        return '*'    # p < 0.10
+    else:
+        return ''
