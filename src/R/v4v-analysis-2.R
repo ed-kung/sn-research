@@ -10,19 +10,9 @@ LOCAL_CONFIG <- read_yaml("../../config.yaml.local")
 LOCAL_PATH <- LOCAL_CONFIG["LOCAL_PATH"][[1]]
 DATA_PATH <- LOCAL_CONFIG["DATA_PATH"][[1]]
 
-in_filename <- paste0(DATA_PATH, "/v4v-analysis-2.parquet")
-out_filename_coefs <- paste0(DATA_PATH, "/v4v-analysis-2-reg-coefs.parquet")
+# ---- Helper functions
 
-
-# ---- Data loading and cleaning
-
-df <- read_parquet(in_filename)
-df$log_sats48 <- log(1+df$sats48)
-df$log_numwords <- log(1 + df$num_words)
-
-
-# ---- Helper for building formulas
-
+# building formulas
 build_fmla <- function(yvar, covars, fevars=c()) {
   if (length(covars)>0) {
     covars_fmla <- paste(covars, collapse = " + ")
@@ -39,6 +29,36 @@ build_fmla <- function(yvar, covars, fevars=c()) {
   as.formula(paste(yvar, " ~ ", covars_fmla, " | ", fevars_fmla))
 }
 
+# extracting regression results
+extract_reg <- function(reg, reg_name) {
+  # coefficients
+  tidy_df <- tidy(reg)
+  coef_df <- data.frame(
+    regression_name = reg_name, 
+    coef_name = tidy_df$term,
+    estimate = tidy_df$estimate,
+    serr = tidy_df$std.error
+  )
+  # stats
+  stats_df <- data.frame(
+    regression_name = reg_name,
+    coef_name = c("num_obs", "R2"),
+    estimate = c(reg$nobs, fitstat(reg, "r2")[[1]]),
+    serr = NA_real_
+  )
+  return(rbind(coef_df, stats_df))
+}
+
+
+
+# ---- Data loading and cleaning
+
+in_filename <- paste0(DATA_PATH, "/v4v-analysis-2.parquet")
+out_filename_coefs <- paste0(DATA_PATH, "/v4v-analysis-2-reg-coefs.parquet")
+
+df <- read_parquet(in_filename)
+df$log_sats48 <- log(1+df$sats48)
+df$log_numwords <- log(1 + df$num_words)
 
 # ---- Run the regressions
 
@@ -58,25 +78,6 @@ etable(r1, r2, r3)  # show results
 
 
 # ---- Convert coefficients to dataframe
-
-extract_reg <- function(reg, reg_name) {
-  # coefficients
-  tidy_df <- tidy(reg)
-  coef_df <- data.frame(
-    regression_name = reg_name, 
-    coef_name = tidy_df$term,
-    estimate = tidy_df$estimate,
-    serr = tidy_df$std.error
-  )
-  # stats
-  stats_df <- data.frame(
-    regression_name = reg_name,
-    coef_name = c("num_obs", "R2"),
-    estimate = c(reg$nobs, fitstat(reg, "r2")[[1]]),
-    serr = NA_real_
-  )
-  return(rbind(coef_df, stats_df))
-}
 
 coefs_df <- rbind(
   extract_reg(r1, "r1"),

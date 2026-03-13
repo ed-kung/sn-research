@@ -1,13 +1,34 @@
- log(Posting Cost) & $-$0.242$^{***}$ & $-$0.266$^{***}$ & $-$0.265$^{***}$ \\ 
-  & (0.079) & (0.062) & (0.072) \\ 
-  & & & \\ 
- Constant & 3.328$^{***}$ &  &  \\ 
-  & (0.415) &  &  \\ 
-  & & & \\ 
+\begin{table}[H]
+\centering
+\caption{Effect of Posting Cost on Post Quality} \label{tbl_posts_cost_reg}
+\begin{threeparttable}
+\begin{tabular}{@{\extracolsep{5pt}}lccc} 
+\\[-1.8ex]\hline 
 \hline \\[-1.8ex] 
-Territory FE & N & Y & Y \\ 
-Week FE & N & Y & Y \\ 
-Territory Operator FE & N & N & Y \\ 
-Observations & 6,023 & 6,023 & 6,023 \\ 
+ & \multicolumn{3}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-4} 
+\\[-1.8ex] & \multicolumn{3}{c}{log(Posts)} \\ 
+\\[-1.8ex] & (1) & (2) & (3)\\ 
+\hline \\[-1.8ex] 
+log(Posting Cost)  & -0.242$^***$ & -0.266$^***$ & -0.265$^***$ \\
+ & (0.079) & (0.063) & (0.074) \\
+Constant  & 3.328$^***$ &  &  \\
+ & (0.415) &  &  \\
+& & & \\
+\hline \\ [-1.8ex]
+Territory FE            & N & Y & Y \\
+Week FE                 & N & Y & Y \\
+Territory Operator FE   & N & N & Y \\
+Observations  & 6,023 & 6,020 & 6,020 \\
 \hline 
-\hline \\[-1.8ex] 
+ \hline \\ [-1.8ex] 
+\end{tabular} 
+\vspace{-0.7cm}
+\begin{tablenotes}[flushleft]\footnotesize
+\item[] \parbox[t]{\linewidth}{%
+\hfill * $p<0.1$, ** $p<0.05$, *** $p<0.01$.
+}
+\item \textit{Notes:} Regression of number of posts in a territory on posting costs for that week. The unit of observation is a territory-week. Standard errors are clustered by territory.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}

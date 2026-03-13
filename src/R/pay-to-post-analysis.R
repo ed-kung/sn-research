@@ -1,22 +1,59 @@
 rm(list=ls())
 
-library(lfe)
 library(yaml)
-library(stargazer)
+library(broom)
 library(dplyr)
 library(arrow)
+library(fixest)
+
+options(width=10000)
 
 LOCAL_CONFIG <- read_yaml("../../config.yaml.local")
 LOCAL_PATH <- LOCAL_CONFIG["LOCAL_PATH"][[1]]
 DATA_PATH <- LOCAL_CONFIG["DATA_PATH"][[1]]
-TABLE_TYPE <- "latex"
 
-ADDED_LINES <- list(
-  c("Territory FE",          "N", "Y", "Y", "Y"),
-  c("Week FE",               "N", "Y", "Y", "Y"),
-  c("Territory Operator FE", "N", "N", "Y", "Y"),
-  c("User FE",               "N", "N", "N", "Y")
-)
+
+# ---- Helper functions
+
+# building formulas
+build_fmla <- function(yvar, covars, fevars=c()) {
+  if (length(covars)>0) {
+    covars_fmla <- paste(covars, collapse = " + ")
+  }
+  else {
+    covars_fmla <- "1"
+  }
+  if (length(fevars)>0) {
+    fevars_fmla <- paste(fevars, collapse = " + ")
+  }
+  else {
+    fevars_fmla <- "0"
+  }
+  as.formula(paste(yvar, " ~ ", covars_fmla, " | ", fevars_fmla))
+}
+
+# extracting regression results
+extract_reg <- function(reg, reg_name) {
+  # coefficients
+  tidy_df <- tidy(reg)
+  coef_df <- data.frame(
+    regression_name = reg_name, 
+    coef_name = tidy_df$term,
+    estimate = tidy_df$estimate,
+    serr = tidy_df$std.error
+  )
+  # stats
+  stats_df <- data.frame(
+    regression_name = reg_name,
+    coef_name = c("num_obs", "R2"),
+    estimate = c(reg$nobs, fitstat(reg, "r2")[[1]]),
+    serr = NA_real_
+  )
+  return(rbind(coef_df, stats_df))
+}
+
+
+# ---- Data loading and cleaning
 
 qual_file <- paste0(DATA_PATH, "/post_quality_analysis_data.parquet")
 quant_file <- paste0(DATA_PATH, "/post_quantity_analysis_data.parquet")
@@ -31,85 +68,44 @@ qual_df$log_comments48 <- log(1 + qual_df$comments48)
 quant_df$log_cost <- log(1 + quant_df$posting_fee)
 quant_df$log_posts <- log(1 + quant_df$n_posts)
 
+
+
 # ---- Quality Regression (Zaps)
 
-rzaps0 <- felm(log_sats48 ~ log_cost | 0 | 0 | subId, data=qual_df)
-rzaps1 <- felm(log_sats48 ~ log_cost | subId + weekId | 0 | subId, data=qual_df)
-rzaps2 <- felm(log_sats48 ~ log_cost | weekId + sub_subOwner_id | 0 | subId, data=qual_df)
-rzaps3 <- felm(log_sats48 ~ log_cost | weekId + sub_subOwner_id + userId | 0 | subId, data=qual_df)
+rzaps0 <- feols(log_sats48 ~ log_cost | 0, data=qual_df, vcov = ~subId)
+rzaps1 <- feols(log_sats48 ~ log_cost | subId + weekId, data=qual_df, vcov = ~subId)
+rzaps2 <- feols(log_sats48 ~ log_cost | weekId + sub_subOwner_id, data=qual_df, vcov = ~subId)
+rzaps3 <- feols(log_sats48 ~ log_cost | weekId + sub_subOwner_id + userId, data=qual_df, vcov = ~subId)
 
-zaps_tbl <- stargazer(
-  rzaps0, rzaps1, rzaps2, rzaps3, type=TABLE_TYPE,
-  covariate.labels = "log(Posting Cost)",
-  add.lines = ADDED_LINES
+etable(rzaps0, rzaps1, rzaps2, rzaps3)
+
+coefs_df <- rbind(
+  extract_reg(rzaps0, "rzaps0"),
+  extract_reg(rzaps1, "rzaps1"),
+  extract_reg(rzaps2, "rzaps2"),
+  extract_reg(rzaps3, "rzaps3")
 )
 
-if (TABLE_TYPE=="latex") {
-  outlines <- zaps_tbl[c(15:26, 30:31)]
-  outfile <- paste0(LOCAL_PATH, "/results/tbl_sats48_cost_reg.tex")
-  writeLines(outlines, outfile)
-}
+outfile <- paste0(DATA_PATH, "/pay_to_post_quality_analysis_coefs.parquet")
+write_parquet(coefs_df, outfile)
 
-outfile <- paste0(DATA_PATH, "/sats48_cost_reg_2.csv")
-write.csv(as.data.frame(coef(rzaps2)), outfile)
-
-outfile <- paste0(DATA_PATH, "/sats48_cost_reg_3.csv")
-write.csv(as.data.frame(coef(rzaps3)), outfile)
-
-
-
-# ---- Quality Regression (Comments)
-
-rcomm0 <- felm(log_comments48 ~ log_cost | 0 | 0 | subId, data=qual_df)
-rcomm1 <- felm(log_comments48 ~ log_cost | subId + weekId | 0 | subId, data=qual_df)
-rcomm2 <- felm(log_comments48 ~ log_cost | weekId + sub_subOwner_id | 0 | subId, data=qual_df)
-rcomm3 <- felm(log_comments48 ~ log_cost | weekId + sub_subOwner_id + userId | 0 | subId, data=qual_df)
-
-comm_tbl <- stargazer(
-  rcomm0, rcomm1, rcomm2, rcomm3, type=TABLE_TYPE,
-  covariate.labels = "log(Posting Cost)",
-  add.lines = ADDED_LINES
-)
-
-if (TABLE_TYPE=="latex") {
-  outlines <- comm_tbl[c(15:26, 30:31)]
-  outfile <- paste0(LOCAL_PATH, "/results/tbl_comments48_cost_reg.tex")
-  writeLines(outlines, outfile)
-}
-
-outfile <- paste0(DATA_PATH, "/comments48_cost_reg_2.csv")
-write.csv(as.data.frame(coef(rcomm2)), outfile)
-
-outfile <- paste0(DATA_PATH, "/comments48_cost_reg_3.csv")
-write.csv(as.data.frame(coef(rcomm3)), outfile)
 
 
 # ---- Quantity Regressions
 
-ADDED_LINES <- list(
-  c("Territory FE",          "N", "Y", "Y"),
-  c("Week FE",               "N", "Y", "Y"),
-  c("Territory Operator FE", "N", "N", "Y")
+rquan0 <- feols(log_posts ~ log_cost | 0, data=quant_df, vcov = ~subId)
+rquan1 <- feols(log_posts ~ log_cost | subId + weekId, data=quant_df, vcov = ~subId)
+rquan2 <- feols(log_posts ~ log_cost | weekId + sub_subOwner_id, data=quant_df, vcov = ~subId)
+
+etable(rquan0, rquan1, rquan2)
+
+coefs_df <- rbind(
+  extract_reg(rquan0, "rquan0"),
+  extract_reg(rquan1, "rquan1"),
+  extract_reg(rquan2, "rquan2")
 )
 
-
-rquan0 <- felm(log_posts ~ log_cost | 0 | 0 | subId, data=quant_df)
-rquan1 <- felm(log_posts ~ log_cost | subId + weekId | 0 | subId, data=quant_df)
-rquan2 <- felm(log_posts ~ log_cost | weekId + sub_subOwner_id | 0 | subId, data=quant_df)
-
-quan_tbl <- stargazer(
-  rquan0, rquan1, rquan2, type=TABLE_TYPE,
-  covariate.labels = "log(Posting Cost)",
-  add.lines = ADDED_LINES
-)
-
-if (TABLE_TYPE=="latex") {
-  outlines <- quan_tbl[c(15:25, 29:30)]
-  outfile <- paste0(LOCAL_PATH, "/results/tbl_posts_cost_reg.tex")
-  writeLines(outlines, outfile)
-}
-
-outfile <- paste0(DATA_PATH, "/posts_cost_reg_2.csv")
-write.csv(as.data.frame(coef(rquan2)), outfile)
+outfile <- paste0(DATA_PATH, "/pay_to_post_quantity_analysis_coefs.parquet")
+write_parquet(coefs_df, outfile)
 
 

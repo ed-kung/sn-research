@@ -1,14 +1,35 @@
- log(Posting Cost) & 0.393$^{***}$ & 0.273$^{***}$ & 0.219$^{***}$ & 0.091$^{**}$ \\ 
-  & (0.048) & (0.058) & (0.050) & (0.043) \\ 
-  & & & & \\ 
- Constant & 2.530$^{***}$ &  &  &  \\ 
-  & (0.076) &  &  &  \\ 
-  & & & & \\ 
+\begin{table}[H]
+\centering
+\caption{Effect of Posting Cost on Post Quality} \label{tbl_sats48_cost_reg}
+\begin{threeparttable}
+\begin{tabular}{@{\extracolsep{5pt}}lcccc} 
+\\[-1.8ex]\hline 
 \hline \\[-1.8ex] 
-Territory FE & N & Y & Y & Y \\ 
-Week FE & N & Y & Y & Y \\ 
-Territory Operator FE & N & N & Y & Y \\ 
-User FE & N & N & N & Y \\ 
-Observations & 179,480 & 179,480 & 179,480 & 179,480 \\ 
+ & \multicolumn{4}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-5} 
+\\[-1.8ex] & \multicolumn{4}{c}{log(Zaps)} \\ 
+\\[-1.8ex] & (1) & (2) & (3) & (4)\\ 
+\hline \\[-1.8ex] 
+log(Posting Cost)  & 0.393$^***$ & 0.273$^***$ & 0.219$^***$ & 0.091$^**$ \\
+ & (0.048) & (0.058) & (0.050) & (0.044) \\
+Constant  & 2.530$^***$ &  &  &  \\
+ & (0.076) &  &  &  \\
+& & & & \\
+\hline \\ [-1.8ex]
+Territory FE            & N & Y & Y & Y \\
+Week FE                 & N & Y & Y & Y \\
+Territory Operator FE   & N & N & Y & Y \\
+User FE                 & N & N & N & Y \\
+Observations  & 179,480 & 179,477 & 179,476 & 178,197 \\
 \hline 
-\hline \\[-1.8ex] 
+ \hline \\ [-1.8ex] 
+\end{tabular} 
+\vspace{-0.7cm}
+\begin{tablenotes}[flushleft]\footnotesize
+\item[] \parbox[t]{\linewidth}{%
+\hfill * $p<0.1$, ** $p<0.05$, *** $p<0.01$.
+}
+\item \textit{Notes:} Regression of number of sats a post earns in the first 48 hours on posting cost. The unit of observation is a post. Standard errors are clustered by territory.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
