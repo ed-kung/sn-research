@@ -33,14 +33,31 @@ Let $i=1,\ldots,N$ index a user's previously made posts. Let $q_i$ denote the qu
 A proof is provided in the appendix.
 \end{proof}
 
-\noindent \emph{Remark.} Since $\hat{\theta}$ is the average of the zap surprises across previous posts, Proposition \ref{prop_v4v} suggests that we can test for the presence of learning by regressing the quality of a user's next post on the average of zap surprises for all prior posts made by that user. Doing so would require a measure of post quality $q_i$ which is not equivalent to the zap amount received by that post. Equation \eqref{eq_zi} suggests a parsimonious model for estimating $q_i$ for each post:
+\paragraph{Evidence of learning.} Since $\hat{\theta}$ is the average of the zap surprises across previous posts, Proposition \ref{prop_v4v} suggests that we can test for the presence of learning by regressing the quality of a user's next post on the average zap surprise for all prior posts made by that user. Specifically, let $i$ index a user and let $k$ index the user's $k$th post. We would run regressions of the following form:
+\begin{align}
+q_{i,k+1} = \beta_0 + \beta_1 \frac{1}{k} \sum_{j=1}^{k}\left[\ln z_{ij} - q_{ij}\right] + \epsilon_{i,k+1}
+\end{align}
+where $z_{ij}$ is the zaps user $i$ received on their $j$th post after the first 48 hours, and $q_{ij}$ is the quality of user $i$'s $j$th post. If users are learning about the returns to effort from past zap surprises, we would expect to estimate $\beta_1 > 0$.
+
+To measure $q_{ij}$, we make use of equation \eqref{eq_zi}, which is the idea that the zap amount within any fixed time window is a noisy measure of $q_{ij}$. We can therefore estimate $q_{ij}$ for each post by regressing zaps on objectively measured post attributes, such as number of words, whether the post is a link post, the number of images and links in the content, etc:
+\begin{align}
+\ln z_{ij} = \theta + \underbrace{X_{ij}\beta}_{q_{ij}}+\varepsilon_{ij}
+\end{align}
+The model's predicted values of $X_{ij} \hat{\beta}$ can then be used as unbiased estimates of the post quality $q_{ij}$. 
+
+Table \ref{tbl_v4v_zreg}
+
+
+
+
+Doing so would require a measure of post quality $q_i$ which is not equivalent to the zap amount received by that post. Equation \eqref{eq_zi} suggests a parsimonious model for estimating $q_i$ for each post:
 \begin{align}
 \ln z_i = \underbrace{X_i \beta}_{q_i} + \underbrace{\theta + \text{noise}}_{\text{surprise}} \label{eq_lnzi_reg}
 \end{align}
 Equation \eqref{eq_lnzi_reg} suggests that zap amount can be regressed on a vector of objective post measurements ($X_i$), such as number of words, presence of links and images, and semantic embeddings. We can then construct an objective measure of post quality for all posts using $\hat{q}_i = X_i \hat{\beta}$. To test for the presence of learning, we would simply regress post quality on the average of zap surprises for that user's previously made posts, and hypothesize a positive coefficient.
 
 
-\paragraph{Evidence of learning.} To test this hypothesis, we first need a method for categorizing posts into different quality types. Although many classification schemes could be considered, we opted for the simplest approach of a binary classification into ``high quality'' and ``low quality'' posts based on transparently observable content characteristics. The simple and transparent classification scheme assists with the interpretability of the results.\footnote{In results available upon request, we have also shown that the same qualitative results hold when using a more sophisticated classifier of content quality based on semantic embeddings.}
+ To test this hypothesis, we first need a method for categorizing posts into different quality types. Although many classification schemes could be considered, we opted for the simplest approach of a binary classification into ``high quality'' and ``low quality'' posts based on transparently observable content characteristics. The simple and transparent classification scheme assists with the interpretability of the results.\footnote{In results available upon request, we have also shown that the same qualitative results hold when using a more sophisticated classifier of content quality based on semantic embeddings.}
 
 We label posts as ``high'' or ``low'' quality based on three easily observable post characteristics: the number of words in the post, whether the post body contains images or links, and whether the post is a ``link post''. On Stacker News, there are two main types of posts: ``discussion posts'' and ``link posts''. There is no difference between the two in terms of costs. The only technical difference between a link post and a discussion post is that a link post contains a URL next to the title of the post. Users of Stacker News generally consider link posts to be of lower quality than discussion posts because link posts usually reference someone else's work and is less likely to contain original content. The most common type of post on Stacker News is a link post with no text in the post body, i.e. a post that points to another URL with no additional commentary. Users \emph{can} add text to the body of a link post. The most common reasons for doing this are to add quotations from the linked URL (to preview the linked content), or to add the user's own commentary regarding the linked URL. When users add their own commentary, link posts tend to be better rewarded than if the user only adds quotations or if the user doesn't add any text to the post body.
 
