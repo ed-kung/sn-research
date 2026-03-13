@@ -35,17 +35,24 @@ A proof is provided in the appendix.
 
 \paragraph{Evidence of learning.} Since $\hat{\theta}$ is the average of the zap surprises across previous posts, Proposition \ref{prop_v4v} suggests that we can test for the presence of learning by regressing the quality of a user's next post on the average zap surprise for all prior posts made by that user. Specifically, let $i$ index a user and let $k$ index the user's $k$th post. We would run regressions of the following form:
 \begin{align}
-q_{i,k+1} = \beta_0 + \beta_1 \frac{1}{k} \sum_{j=1}^{k}\left[\ln z_{ij} - q_{ij}\right] + \epsilon_{i,k+1}
+q_{i,k+1} = \beta_0 + \beta_1 \underbrace{\frac{1}{k} \sum_{j=1}^{k}\left[\ln z_{ij} - q_{ij}\right]}_{\hat{\theta}_{ik}} + \epsilon_{i,k+1} \label{eq_v4v_qreg}
 \end{align}
-where $z_{ij}$ is the zaps user $i$ received on their $j$th post after the first 48 hours, and $q_{ij}$ is the quality of user $i$'s $j$th post. If users are learning about the returns to effort from past zap surprises, we would expect to estimate $\beta_1 > 0$.
+where $z_{ij}$ is the zaps user $i$ received on their $j$th post after the first 48 hours, and $q_{ij}$ is the quality of user $i$'s $j$th post. If users are learning about the returns to effort from past zap surprises, we would expect to estimate $\beta_1 > 0$. Intuitively, identification comes from the following thought experiment: imagine two otherwise identical users, but by random chance user A has had a more positive zap history than user B for the same quality posts. User A therefore has a more optimistic view of the returns to effort than user B, and will on the subsequent post exert more effort, resulting in higher expected post quality.
 
 To measure $q_{ij}$, we make use of equation \eqref{eq_zi}, which is the idea that the zap amount within any fixed time window is a noisy measure of $q_{ij}$. We can therefore estimate $q_{ij}$ for each post by regressing zaps on objectively measured post attributes, such as number of words, whether the post is a link post, the number of images and links in the content, etc:
 \begin{align}
-\ln z_{ij} = \theta + \underbrace{X_{ij}\beta}_{q_{ij}}+\varepsilon_{ij}
+\ln z_{ij} = \theta + \underbrace{X_{ij}\beta}_{q_{ij}}+\varepsilon_{ij} \label{eq_zreg}
 \end{align}
 The model's predicted values of $X_{ij} \hat{\beta}$ can then be used as unbiased estimates of the post quality $q_{ij}$. 
 
-Table \ref{tbl_v4v_zreg}
+Table \ref{tbl_v4v_zreg} reports results from regressions based on equation \eqref{eq_zreg}. Column 1 starts with three attributes: the number of words in the post, whether or not the post is a link post, and the number of images and links in the post body. As discussed earlier, link posts are posts that point to a URL. They can have empty post bodies (no words), but the author of a link post can also add text to the post body to provide context for the link. As confirmed by the results in Table \ref{tbl_v4v_zreg}, link posts are generally less well-rewarded on Stacker News than non-link posts. By contrast, posts with links and images \emph{in the post body} are usually better rewarded on average than posts without links and images. The presence of images and links in the post body may signal that the author has spent some time thinking about and working on the post, both to make it more attractive and engaging (images), and to make it more useful (referrals to other relevant URLs). 
+
+Column 2 of Table \ref{tbl_v4v_zreg} adds text embeddings to the vector of post attributes. The embeddings were computed from post text using OpenAI's \texttt{text-embedding-3-small} embedding model. The embedding model computes a 1,536 dimensional embedding vector for each post that encodes the meaning of the text in such a way that two posts with similar text will have short distances between their embedding vectors. Before including these embedding vectors in the vector of attributes, we first reduce their dimensionality by performing principal components analysis (PCA) with 10 components. The PCA extracts the 10 orthogonal component vectors that explain the most variance in the original 1,536 dimensional vector. We then include the 10 principal components in the attribute vector $X_{ij}$ for the regression.\footnote{Please refer to the appendix for further methodological details.} 
+
+Lastly, Column 3 of Table \ref{tbl_v4v_zreg} includes user fixed effects and territory fixed effects. It is appropriate to include these features in our definition of $q_{ij}$, because $q_{ij}$ is meant to capture all the predictable features of post quality, and it is reasonable to assume that users have a sense of which territories are better rewarded and a sense of the baseline quality of their own writing. 
+
+Column 3 of Table \ref{tbl_v4v_zreg} is our preferred specification. We therefore take the cofficients as estimated in Column 3 of Table \ref{tbl_v4v_zreg} (including the user and territory fixed effects), and estimate $q_{ij}$ for each post using only those attributes. We then regress $q_{i,k+1}$ on $\hat{\theta}_{ik}$, the average of past post residuals, as suggested in equation \eqref{eq_v4v_qreg}. Table \ref{tbl_v4v_qreg} shows the results of this regression. Note that user and territory fixed effects are included in the regression by default. This is necessary because these fixed effects are 
+
 
 
 
