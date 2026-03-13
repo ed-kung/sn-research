@@ -94,6 +94,9 @@ df$q <- df$log_sats48
 df$q[r3$obs_selection$obsRemoved] <- predict(r3)
 df$surprise <- df$log_sats48 - df$q
 
+out_filename <- paste0(DATA_PATH, "/v4v-analysis-2-data-w-q.parquet")
+write_parquet(df, out_filename)
+
 
 # ---- Calculate running average or surprise
 
