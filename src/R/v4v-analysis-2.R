@@ -54,7 +54,6 @@ extract_reg <- function(reg, reg_name) {
 # ---- Data loading and cleaning
 
 in_filename <- paste0(DATA_PATH, "/v4v-analysis-2.parquet")
-out_filename_coefs <- paste0(DATA_PATH, "/v4v-analysis-2-reg-coefs.parquet")
 
 df <- read_parquet(in_filename)
 df$log_sats48 <- log(1+df$sats48)
@@ -70,9 +69,9 @@ TEXT_PCA_VARS <- paste0("text_emb_", 0:(TEXT_PCA_K-1))
 yvar <- "log_sats48"
 covars <- c(MAIN_VARS, TEXT_PCA_VARS)
 
-r1 <- feols(build_fmla(yvar, MAIN_VARS), data=df)
-r2 <- feols(build_fmla(yvar, covars), data=df)
-r3 <- feols(build_fmla(yvar, covars, c("subId", "userId")), data=df)
+r1 <- feols(build_fmla(yvar, MAIN_VARS), data=df, vcov = ~subId)
+r2 <- feols(build_fmla(yvar, covars), data=df, vcov = ~subId)
+r3 <- feols(build_fmla(yvar, covars, c("subId", "userId")), data=df, vcov = ~subId)
 
 etable(r1, r2, r3)  # show results
 
@@ -101,7 +100,9 @@ df <- df %>%
   arrange(userId, itemId) %>%
   group_by(userId) %>%
   mutate(
-    avg_surprise = lag(cummean(surprise))
+    avg_surprise = lag(cummean(surprise)),
+    log_prior_zaps = lag(log(cumsum(sats48))),
+    log_prior_posts = lag(row_number())
   ) %>%
   ungroup()
 
@@ -111,9 +112,32 @@ df <- df %>%
 yvar = "q"
 covars = c("avg_surprise")
 
-r8 <- feols(build_fmla(yvar, covars, c("subId", "userId", "weekId")), data=df)
+r4 <- feols(
+  build_fmla(
+    yvar, 
+    c("avg_surprise"),
+    c("subId", "userId")
+  ), 
+  data=df, vcov = ~subId
+)
+r5 <- feols(
+  build_fmla(
+    yvar, 
+    c("avg_surprise", "log_prior_zaps", "log_prior_posts"), 
+    c("subId", "userId")
+  ), 
+  data=df, vcov = ~subId
+)
+r6 <- feols(
+  build_fmla(
+    yvar, 
+    c("avg_surprise", "log_prior_zaps", "log_prior_posts"), 
+    c("subId", "userId", "weekId")
+  ), 
+  data=df, vcov = ~subId
+)
 
-etable(r8)
+etable(r4, r5, r6)
 
 
 
