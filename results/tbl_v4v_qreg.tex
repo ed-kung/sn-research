@@ -1,0 +1,33 @@
+\begin{table}[H]
+\centering
+\caption{Regression of Next Post Quality on Past Zap Surprises} \label{tbl_v4v_qreg}
+\begin{threeparttable}
+\begin{tabular}{@{\extracolsep{5pt}}lccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{3}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-4} 
+\\[-1.8ex] & \multicolumn{3}{c}{$q_i$ of next post} \\ 
+\\[-1.8ex] & (1) & (2) & (3) \\ 
+\hline \\[-1.8ex] 
+Avg of past zap surprises ($\hat{\theta})$  & 0.048$^{***}$ & 0.034$^{***}$ & 0.024$^{***}$ \\
+ & (0.007) & (0.008) & (0.006) \\
+log(Total prior zaps)  &  & 0.016$^{***}$ & -0.012$^{***}$ \\
+ &  & (0.004) & (0.003) \\
+log(Total prior posts)  &  & 0.000$^{***}$ & -0.000$^{}$ \\
+ &  & (0.000) & (0.000) \\
+& & & & \\
+\hline \\ [-1.8ex]
+Territory FE            & Y & Y & Y \\
+User FE                 & Y & Y & Y \\
+Week FE                 & N & N & Y \\
+Observations  & 170,936 & 170,936 & 170,936 \\ \hline \hline 
+\end{tabular} 
+\begin{tablenotes}[flushleft]\footnotesize
+\item[] \parbox[t]{\linewidth}{%
+\hfill * $p<0.1$, ** $p<0.05$, *** $p<0.01$.
+}
+\item \textit{Notes:} Regression of next post quality ($q_i$) on the average of prior zap surprises ($\frac{1}{n} \sum \ln z_i - q_i$). The unit of observation is a post. Standard errors are clustered by territory.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}

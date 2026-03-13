@@ -84,7 +84,8 @@ coefs_df <- rbind(
   extract_reg(r3, "r3")
 )
 
-write_parquet(coefs_df, out_filename_coefs)
+out_filename <- paste0(DATA_PATH, "/v4v-analysis-2-zreg.parquet")
+write_parquet(coefs_df, out_filename)
 
 
 # ---- Extract values for q and surprise
@@ -101,7 +102,7 @@ df <- df %>%
   group_by(userId) %>%
   mutate(
     avg_surprise = lag(cummean(surprise)),
-    log_prior_zaps = lag(log(cumsum(sats48))),
+    log_prior_zaps = lag(log(1+cumsum(sats48))),
     log_prior_posts = lag(row_number())
   ) %>%
   ungroup()
@@ -139,6 +140,14 @@ r6 <- feols(
 
 etable(r4, r5, r6)
 
+coefs_df <- rbind(
+  extract_reg(r4, "r4"),
+  extract_reg(r5, "r5"),
+  extract_reg(r6, "r6")
+)
+
+out_filename <- paste0(DATA_PATH, "/v4v-analysis-2-qreg.parquet")
+write_parquet(coefs_df, out_filename)
 
 
 
