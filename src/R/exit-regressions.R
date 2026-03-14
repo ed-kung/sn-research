@@ -1,13 +1,38 @@
 rm(list=ls())
 
-library(lfe)
+library(broom)
 library(yaml)
 library(stargazer)
 library(dplyr)
+library(fixest)
 
 LOCAL_CONFIG <- read_yaml("../../config.yaml.local")
 LOCAL_PATH <- LOCAL_CONFIG["LOCAL_PATH"][[1]]
 DATA_PATH <- LOCAL_CONFIG["DATA_PATH"][[1]]
+
+# ---- Helper functions
+
+# extracting regression results
+extract_reg <- function(reg, reg_name) {
+  # coefficients
+  tidy_df <- tidy(reg)
+  coef_df <- data.frame(
+    regression_name = reg_name, 
+    coef_name = tidy_df$term,
+    estimate = tidy_df$estimate,
+    serr = tidy_df$std.error
+  )
+  # stats
+  stats_df <- data.frame(
+    regression_name = reg_name,
+    coef_name = c("num_obs"),
+    estimate = c(reg$nobs),
+    serr = NA_real_
+  )
+  return(rbind(coef_df, stats_df))
+}
+
+# --- Load and clean data
 
 filename <- paste0(DATA_PATH, "/user_analysis_data.csv")
 
@@ -16,7 +41,6 @@ df <- read.csv(filename)
 df$inactive <- (df$weeks_since_last_activity>=1) & (df$length_of_inactivity>=4)
 df$became_inactive <- (df$weeks_since_last_activity==1) & (df$length_of_inactivity>=4)
 df$unprofitable <- (df$rolling_profit1 < 0)
-#df$log_rolling_profit <- log(1+df$rolling_profit1)
 df$logprice <- log(df$btc_price)
 df$pgrowth <- df$mom_growth
 df$unprofitable_X_pgrowth <- df$unprofitable * df$pgrowth
@@ -31,8 +55,9 @@ r1 <- glm(became_inactive ~ unprofitable + pgrowth + unprofitable_X_pgrowth, dat
 r2 <- glm(became_inactive ~ unprofitable + pgrowth + unprofitable_X_pgrowth + logitems, data=regdf, family = binomial(link = "logit"))
 r3 <- felm(became_inactive ~ unprofitable + unprofitable_X_pgrowth + logitems | week, data=regdf)
 
-tbl <- stargazer(
-  r0, r1, r2, r3, type="latex",
+
+stargazer(
+  r0, r1, r2, r3, type="text",
   covariate.labels = c(
     "Unprofitable last 8 weeks",
     "MoM BTC price growth",
@@ -46,7 +71,14 @@ tbl <- stargazer(
   model.names = FALSE
 )
 
-outfile <- paste0(LOCAL_PATH, "/results/tbl_exit_reg.tex")
+coefs_df <- rbind(
+  extract_reg(r0, "r0"),
+  extract_reg(r1, "r1"),
+  extract_reg(r2, "r2"),
+  extract_reg(r3, "r3"),
+)
+
+outfile <- paste0(DATA_PATH, "")
 writeLines(tbl[c(15:33, 39:40)], outfile)
 
 
