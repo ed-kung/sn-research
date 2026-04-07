@@ -61,11 +61,25 @@ qual_df = read_parquet(qual_file)
 
 qual_df$log_sats48 <- log(1 + qual_df$sats48)
 
-fee_chg_pos_F <- paste0("fee_chg_pos_F",1:12)
+fee_chg_pos_F <- paste0("fee_chg_pos_F",12:2)
 fee_chg_pos_L <- paste0("fee_chg_pos_L",1:12)
-fee_chg_neg_F <- paste0("fee_chg_neg_F",1:12)
+fee_chg_neg_F <- paste0("fee_chg_neg_F",12:2)
 fee_chg_neg_L <- paste0("fee_chg_neg_L",1:12)
 
+fmla1 <- build_fmla(
+  "log_sats48",
+  c(fee_chg_pos_F, "fee_chg_pos", fee_chg_pos_L, fee_chg_neg_F, "fee_chg_neg", fee_chg_neg_L),
+  c("weekId", "sub_subOwner_id")
+)
 
+fmla2 <- build_fmla(
+  "log_sats48",
+  c(fee_chg_pos_F, "fee_chg_pos", fee_chg_pos_L, fee_chg_neg_F, "fee_chg_neg", fee_chg_neg_L),
+  c("weekId", "sub_subOwner_id", "userId")
+)
 
+r1 <- feols(fmla1, data=qual_df, vcov = ~subId)
+r2 <- feols(fmla2, data=qual_df, vcov = ~subId)
+
+etable(r1, r2)
 
