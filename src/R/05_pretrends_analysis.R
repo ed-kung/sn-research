@@ -52,34 +52,61 @@ extract_reg <- function(reg, reg_name) {
   return(rbind(coef_df, stats_df))
 }
 
-
-# ---- Data loading and cleaning
-
-qual_file <- paste0(DATA_PATH, "/pretrends_check_data.parquet")
-
-qual_df = read_parquet(qual_file)
-
-qual_df$log_sats48 <- log(1 + qual_df$sats48)
-
-fee_chg_pos_F <- paste0("fee_chg_pos_F",12:2)
+fee_chg_pos_F <- paste0("fee_chg_pos_F",12:1)
 fee_chg_pos_L <- paste0("fee_chg_pos_L",1:12)
-fee_chg_neg_F <- paste0("fee_chg_neg_F",12:2)
+fee_chg_neg_F <- paste0("fee_chg_neg_F",12:1)
 fee_chg_neg_L <- paste0("fee_chg_neg_L",1:12)
+
+# ---- Quality pretrends check
+
+qual_df <- read_parquet(paste0(DATA_PATH, "/pretrends_check_qual_df.parquet"))
+
+qual_df$log_sats48 <- log(1+qual_df$sats48)
 
 fmla1 <- build_fmla(
   "log_sats48",
   c(fee_chg_pos_F, "fee_chg_pos", fee_chg_pos_L, fee_chg_neg_F, "fee_chg_neg", fee_chg_neg_L),
   c("weekId", "sub_subOwner_id")
 )
-
 fmla2 <- build_fmla(
   "log_sats48",
   c(fee_chg_pos_F, "fee_chg_pos", fee_chg_pos_L, fee_chg_neg_F, "fee_chg_neg", fee_chg_neg_L),
   c("weekId", "sub_subOwner_id", "userId")
 )
 
-r1 <- feols(fmla1, data=qual_df, vcov = ~subId)
-r2 <- feols(fmla2, data=qual_df, vcov = ~subId)
+r1 <- feols(fmla1, data=qual_df, vcov=~subId)
+r2 <- feols(fmla2, data=qual_df, vcov=~subId)
 
-etable(r1, r2)
+
+# ---- Quantity pretrends check
+
+quant_df <- read_parquet(paste0(DATA_PATH, "/pretrends_check_quant_df.parquet"))
+
+quant_df$log_posts <- log(1+quant_df$n_posts)
+
+fmla3 <- build_fmla(
+  "log_posts",
+  c(fee_chg_pos_F, "fee_chg_pos", fee_chg_pos_L, fee_chg_neg_F, "fee_chg_neg", fee_chg_neg_L),
+  c("weekId", "sub_subOwner_id")
+)
+
+r3 <- feols(fmla3, data=quant_df, vcov=~subId)
+
+
+# ---- Output results
+
+etable(r1, r2, r3)
+
+coefs_df <- rbind(
+  extract_reg(r1, "r1"),
+  extract_reg(r2, "r2"),
+  extract_reg(r3, "r3")
+)
+
+outfile <- paste0(DATA_PATH, "/pretrends_analysis_coefs.parquet")
+write_parquet(coefs_df, outfile)
+
+
+
+
 
