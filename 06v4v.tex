@@ -2,7 +2,9 @@
 
 We now consider our second hypothesis: that the types of content better rewarded by zaps will increase in prevalence over time as users learn that these kinds of content are better rewarded. As in the previous section, we first extend the model of posting behavior to account for effort and learning, then we test the empirical predictions of the model.
 
-\paragraph{Model.} We extend the model from Section \ref{sec_pay_to_post} to account for effort. As before, opportunities to post still arrive as a Poisson process with rate $\gamma$. But before observing $(q,\epsilon)$, the user first decides how much effort to exert in crafting the post. Effort affects the distribution of post quality and intrinsic motivation, $f(q,\epsilon;e)$ (users may be more motivated to post if they've exerted a lot of effort). The cost of exerting effort is $\kappa(e)$ with $\kappa(0)=0$ and $\kappa^\prime(e)>0$.  The user's expected utility conditional on effort is:
+\subsection{A model with learning and effort}
+
+We extend the model from Section \ref{sec_pay_to_post} to account for effort. As before, opportunities to post still arrive as a Poisson process with rate $\gamma$. But before observing $(q,\epsilon)$, the user first decides how much effort to exert in crafting the post. Effort affects the distribution of post quality and intrinsic motivation, $f(q,\epsilon;e)$ (users may be more motivated to post if they've exerted a lot of effort). The cost of exerting effort is $\kappa(e)$ with $\kappa(0)=0$ and $\kappa^\prime(e)>0$.  The user's expected utility conditional on effort is:
 \begin{align*}
 U(e) = E_{q,\epsilon|e}\left[ \max \left\{ V(q) -c+\epsilon,0  \right\}\right] - \kappa(e)
 \end{align*}
@@ -33,11 +35,13 @@ Let $i=1,\ldots,N$ index a user's previously made posts. Let $q_i$ denote the qu
 A proof is provided in the appendix.
 \end{proof}
 
-\paragraph{Evidence of learning.} Since $\hat{\theta}$ is the average of the zap surprises across previous posts, Proposition \ref{prop_v4v} suggests that we can test for the presence of learning by regressing the quality of a user's next post on the average zap surprise for all prior posts made by that user. Specifically, let $i$ index a user and let $k$ index the user's $k$th post. We would run regressions of the following form:
+\subsection{Evidence of learning}
+
+Since $\hat{\theta}$ is the average of the zap surprises across previous posts, Proposition \ref{prop_v4v} suggests that we can test for the presence of learning by regressing the quality of a user's next post on the average zap surprise for all prior posts made by that user. Specifically, let $i$ index a user and let $k$ index the user's $k$th post. We would run regressions of the following form:
 \begin{align}
 q_{i,k+1} = \beta_0 + \beta_1 \underbrace{\frac{1}{k} \sum_{j=1}^{k}\left[\ln z_{ij} - q_{ij}\right]}_{\hat{\theta}_{ik}} + \epsilon_{i,k+1} \label{eq_v4v_qreg}
 \end{align}
-where $z_{ij}$ is the zaps user $i$ received on their $j$th post after the first 48 hours, and $q_{ij}$ is the quality of user $i$'s $j$th post. If users are learning about the returns to effort from past zap surprises, we would expect to estimate $\beta_1 > 0$. Intuitively, identification comes from the following thought experiment: imagine two otherwise identical users, but by random chance user A has had a more positive zap history than user B for the same quality posts. User A therefore has a more optimistic view of the returns to effort than user B, and will on the subsequent post exert more effort, resulting in higher expected post quality.
+where $z_{ij}$ is the zaps user $i$ received on their $j$th post after the first 48 hours, and $q_{ij}$ is the quality of user $i$'s $j$th post. If users are learning about the returns to effort from past zap surprises, we would expect to estimate $\beta_1 > 0$. Identification comes from the following thought experiment: imagine two otherwise identical users, but by random chance user A has had a more positive zap history than user B for the same quality posts. User A therefore has a more optimistic view of the returns to effort than user B, and will on the subsequent post exert more effort, resulting in higher expected post quality.
 
 To measure $q_{ij}$, we make use of equation \eqref{eq_zi}, which is the idea that the zap amount within any fixed time window is a noisy measure of $q_{ij}$. We can therefore estimate $q_{ij}$ for each post by regressing zaps on objectively measured post attributes, such as number of words, whether the post is a link post, the number of images and links in the content, etc:
 \begin{align}
@@ -55,10 +59,7 @@ Column 3 of Table \ref{tbl_v4v_zreg} is our preferred specification. We therefor
 
 Using Column 3 of Table \ref{tbl_v4v_qreg} as our preferred specification, the results show an elasticity of \gn{LearningElasticity} between subsequent post quality and the average of past zap surprises. The effect is modest: it implies that if user A has twice the average past zap surprise of user B, that user A's subsequent post will be of \gn{LearningDoublingEffect} percent higher quality, measured by expected zaps received.  Although the magnitude of the effect is small, the effect is statistically significant and robust to the inclusion of various controls, as shown in Table \ref{tbl_v4v_qreg}. 
 
-Moreover, we note that this regression estimates learning based on individual experiences only, and partials out the effect of global learning via the week fixed effects. If we hypothesize that global learning is also present, then we should expect to see higher post quality over time, as measured by objective post attributes. And this is indeed what we see: Figure \ref{fig_v4v_q_trend} plots the average of $q_{ij}$ by week, showing that this has indeed been increasing over time. In other words, post quality---as measured by number of words and semantic features---has been increasing over time, which is evidence of global learning and quality improvement driven by value-for-value incentives.\footnote{Note that this is explicitly \emph{not} driven by changes to zap generosity over time, since $q_{ij}$ is measured based on post characteristics only.}
+\subsection{Discussion}
 
-
-
-
-
+Although our the magnitude of our estimated learning effect is small, we note that this regressions estimates learning driven by variations in individual experiences only, and partials out the effect of global learning via the week fixed effects. If we hypothesize that global learning is also present---that is, if users can observe which posts made by \emph{other} users are highly rewarded (which is almost certainly true)---, then we should expect to see higher post quality over time globally, as measured by objective post attributes. And this is indeed what we see: Figure \ref{fig_v4v_q_trend} plots the average of $q_{ij}$ by week, showing that this has indeed been increasing over time. In other words, post quality---as measured by number of words and semantic features---has been increasing over time, which is suggestive of global learning and quality improvement driven by value-for-value incentives.  Note that this result is \emph{not} driven by changes to zap generosity over time, since $q_{ij}$ is measured based on objective post attributes only.  We do acknowledge, however, that any effect of global learning is hard to disentangle from alternative explanations that could drive a similar effect, such as a global change in posters' preferences (e.g. if posters' taste for creating longer posts has grown over time.)
 
