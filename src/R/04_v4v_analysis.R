@@ -61,7 +61,7 @@ df$log_numwords <- log(1 + df$num_words)
 
 # ---- Run the regressions
 
-MAIN_VARS <- c("log_numwords", "is_link_post", "num_img_or_links")
+MAIN_VARS <- c("log_numwords", "no_text", "is_link_post", "num_img_or_links")
 
 TEXT_PCA_K <- 10
 TEXT_PCA_VARS <- paste0("text_emb_", 0:(TEXT_PCA_K-1))
