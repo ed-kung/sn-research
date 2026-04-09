@@ -75,7 +75,7 @@ where $i$ indexes a post, $j$ indexes a territory, and $t$ indexes a year-week.\
 
 To measure post quality, we measure the number of sats the post earned on zaps in the first 48 hours of posting. Zaps represent a revealed preference measure of quality, since users must pay real money to zap. The purpose of the dummy variables is to absorb any unobserved heterogeneity in territories (e.g. if some territories are more popular and thus attract more zaps), and to absorb any global time trends in the popularity of Stacker News.
 
-The causal effect of posting cost is identified from differential changes in post quality across territories when the territory posting costs change differentially. For example, if the posting cost in the \texttt{econ} territory increases while the posting cost in \texttt{bitcoin} stays the same, and subsequently the average quality of posts increases in \texttt{econ} relative to in \texttt{bitcoin}, this would suggest that the change in posting cause likely caused the change in post quality. The coefficient $\alpha$ is identified off the many such changes present in the data.
+The causal effect of posting cost is identified from differential changes in post quality across territories when the territory posting costs change differentially. For example, if the posting cost in the \texttt{econ} territory increases while the posting cost in \texttt{bitcoin} stays the same, and subsequently the average quality of posts increases in \texttt{econ} relative to in \texttt{bitcoin}, this would suggest that the change in posting cost likely caused the change in post quality. The coefficient $\alpha$ is identified off the many such changes present in the data.
 
 To give the reader a sense of the variation in posting costs, we plot the posting cost histories for four representative territories in Figure \ref{fig_posting_fee_histories}. The figure shows that there is indeed substantial variation in posting fees both across and within territories. 
 %Altogether, the data contains \gn{NumPostingFeeChanges} changes in territory posting fees across the \gn{NumTerritories} territories. 
@@ -139,7 +139,7 @@ These results, combined with suggestive evidence in Figure \ref{fig_post_quality
 ``For \texttt{science}, I only experimented a very little at the beginning. Don't remember the specifics, but I must have tried really low (like 10-20 sats) and then a bit higher (like 100 sats). Because I had a personal policy of upvoting each post that had a modicum of quality (e.g. not just a link without context), I ended up with a small army of posters (assmilkers) that were doing the bare minimum but not enough to instigate comments or discussions. I think the reason for the 100 sats was to see how this increase would affect the willingness of those low-effort posters to post. It worked, but a side effect is that I was getting much less volume, also from quality posters. So I put it back down, and just let the community decide if a post is worth getting sats.''
 \end{quote}
 
-\noindent This operator's reasoning reflects the pay-to-post mechanism we hypothesized in Propositon \ref{prop_pay_to_post}.
+\noindent This operator's reasoning reflects the pay-to-post mechanism we hypothesized in Proposition \ref{prop_pay_to_post}.
 
 \subsection{Discussion}
 

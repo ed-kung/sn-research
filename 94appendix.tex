@@ -85,14 +85,14 @@ By the monotonicity assumption, $c - V(q_1) > c - V(q_2)$. By Claim 2, this impl
 \begin{proof}
 Given $\hat{\theta}$, the user's expected utility from effort is:
 \begin{align*}
-U(e;\hat{\theta}) = E_{q,\epsilon|e} \left[ \max \left\{ \exp (\hat{\theta}q) - c + \epsilon, 0 \right\} \right] - \kappa(e)
+U(e;\hat{\theta}) = E_{q,\epsilon|e} \left[ \max \left\{ \exp (\hat{\theta} + q) - c + \epsilon, 0 \right\} \right] - \kappa(e)
 \end{align*}
 It suffices to show that $U(e; \hat{\theta})$ is supermodular in $(e, \hat{\theta})$. For any $\hat{\theta}_2 > \hat{\theta}_1$:
 \begin{align*}
 U(e;&\hat{\theta}_2) - U(e;\hat{\theta}_1) = \\
-& E_{q,\epsilon|e}\left[ \max \left\{ \exp( \hat{\theta}_2 q) - c + \epsilon, 0\right\} - \max \left\{ \exp( \hat{\theta}_1 q) - c + \epsilon, 0 \right\} \right]
+& E_{q,\epsilon|e}\left[ \max \left\{ \exp( \hat{\theta}_2 + q) - c + \epsilon, 0\right\} - \max \left\{ \exp( \hat{\theta}_1 + q) - c + \epsilon, 0 \right\} \right]
 \end{align*}
-The integrand is supermodular in $(\hat{\theta},q)$ because  $\exp(\hat{\theta}q)$ is supermodular in $(\hat{\theta}, q)$ and because the $\max$ operator is convex and increasing. Furthermore, since $F(q|\epsilon;e)$ satisfies FOSD in $e$, it follows immediately $U(e;\hat{\theta}_2)-U(e;\hat{\theta}_1)$ is increasing in $e$, and hence $U(e;\hat{\theta})$ is supermodular in $(e,\hat{\theta}).$
+The integrand is supermodular in $(\hat{\theta},q)$ because  $\exp(\hat{\theta} + q)$ is supermodular in $(\hat{\theta}, q)$ and because the $\max$ operator is convex and increasing. Furthermore, since $F(q|\epsilon;e)$ satisfies FOSD in $e$, it follows immediately $U(e;\hat{\theta}_2)-U(e;\hat{\theta}_1)$ is increasing in $e$, and hence $U(e;\hat{\theta})$ is supermodular in $(e,\hat{\theta}).$
 \end{proof}
 
 \section{Methodological Detail - Text Embeddings}
