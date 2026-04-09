@@ -94,3 +94,10 @@ U(e;&\hat{\theta}_2) - U(e;\hat{\theta}_1) = \\
 \end{align*}
 The integrand is supermodular in $(\hat{\theta},q)$ because  $\exp(\hat{\theta}q)$ is supermodular in $(\hat{\theta}, q)$ and because the $\max$ operator is convex and increasing. Furthermore, since $F(q|\epsilon;e)$ satisfies FOSD in $e$, it follows immediately $U(e;\hat{\theta}_2)-U(e;\hat{\theta}_1)$ is increasing in $e$, and hence $U(e;\hat{\theta})$ is supermodular in $(e,\hat{\theta}).$
 \end{proof}
+
+\section{Methodological Detail - Text Embeddings}
+
+Text embeddings were computed for each post by inputting the post text into \mbox{OpenAI's} \texttt{text-embedding-3-small} embedding model. The embedding model computes a 1,536 dimensional embedding vector for each post that encodes the meaning of the text in such a way that two posts with similar text will have a small distance between their embedding vectors. The raw embedding dimensions are learned from a large general purpose training corpus and are not tailored to the structure of our dataset. We therefore compute the principal components of the raw embedding vectors using our corpus. The principal components capture the orthogonal vectors that explain the most variation within our data, and thus capture the most meaningful differences between posts within our data. Figure \ref{fig_text_scree_plot} shows the scree plot of the principal components analysis, for the first \gn{NumPCAComponentsShow} components. The first component itself explains about \gn{PCAFirstExplain}\% of the variation; this is because many posts have empty text and this is what the first component is capturing. The percent of variance explained declines rapidly, with the second component explaining \gn{PCASecondExplain}\% of the variation, and \gn{PCAThirdExplain}\% for the third. To keep our regression in \eqref{eq_zreg} parsimonious, we decided to use only the first \gn{TextPCAK} components in the analysis, which together explain \gn{TextPCAPctExplained}\% of the total variation. However, our results in Section \ref{sec_v4v} are robust to the specific choice of how many components to use. 
+
+\pagebreak
+\input{results/fig_text_scree_plot.tex}
