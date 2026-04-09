@@ -17,7 +17,7 @@ with open('../../config.yaml', 'r') as f:
 LOCAL_PATH = local_config['LOCAL_PATH']
 DATA_PATH = local_config['DATA_PATH']
 
-EMBEDDING_STORE_PATH = os.path.join(LOCAL_PATH, 'db', 'embeddings.db')
+EMBEDDING_STORE_PATH = os.path.join(DATA_PATH, 'db', 'embeddings.db')
 BATCH_PATH = os.path.join(DATA_PATH, 'batch')
 
 sys.path.append(os.path.join(LOCAL_PATH, 'src', 'python'))
