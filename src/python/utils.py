@@ -52,3 +52,28 @@ def stars(coef, serr):
         return '*'    # p < 0.10
     else:
         return ''
+
+def weighted_kreg(x, y, w, bw, grid, nboot=200, rng=np.random.default_rng(42)):
+    # kernel matrix
+    d = (grid[:,None] - x[None,:]) / bw
+    K = np.exp(-0.5 * d * d)
+    Kw = K * w[None, :]
+    n = len(x)
+
+    y_pred = (Kw @ y) / (Kw.sum(axis=1))
+
+    ci_lower = None
+    ci_upper = None
+
+    # efficient bootstrap
+    if nboot > 0:
+        # resampling rows = reweighting by multinomial counts
+        counts = rng.multinomial(n, np.full(n, 1/n), size=nboot)
+        Weff = w[None, :] * counts
+        numerator = (Weff * y[None, :]) @ K.T 
+        denominator = (Weff @ K.T)
+        y_boot = numerator / denominator
+        ci_lower = np.percentile(y_boot, 2.5, axis=0)
+        ci_upper = np.percentile(y_boot, 97.5, axis=0)
+
+    return y_pred, ci_lower, ci_upper

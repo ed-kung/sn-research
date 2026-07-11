@@ -71,7 +71,7 @@ covars <- c(MAIN_VARS, TEXT_PCA_VARS)
 
 r1 <- feols(build_fmla(yvar, MAIN_VARS), data=df, vcov = ~subId)
 r2 <- feols(build_fmla(yvar, covars), data=df, vcov = ~subId)
-r3 <- feols(build_fmla(yvar, covars, c("subId", "userId")), data=df, vcov = ~subId)
+r3 <- feols(build_fmla(yvar, covars, c("subId", "userId", "weekId")), data=df, vcov = ~subId)
 
 etable(r1, r2, r3)  # show results
 
@@ -91,7 +91,7 @@ write_parquet(coefs_df, out_filename)
 # ---- Extract values for q and surprise
 
 df$q <- df$log_sats48
-df$q[r3$obs_selection$obsRemoved] <- predict(r3)
+df$q[r3$obs_selection$obsRemoved] <- predict(r2)
 df$surprise <- df$log_sats48 - df$q
 
 out_filename <- paste0(DATA_PATH, "/v4v-analysis-2-data-w-q.parquet")
