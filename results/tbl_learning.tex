@@ -1,22 +1,22 @@
 \begin{table}[H]
 \centering
-\caption{Evidence of Tip-Based Learning}
+\caption{Effect of Prior Tip Feedback on Post Type Choice}
 \vspace{0.2cm}
 \label{tbl_learning}
 \begin{adjustbox}{max width=\textwidth}
 \begin{threeparttable}
 \begin{tabular}{lcccccc}
 \toprule
- & \multicolumn{6}{c}{Information weighted by:} \\
- & \multicolumn{2}{c}{Uniform} & \multicolumn{2}{c}{Recency} & \multicolumn{2}{c}{\makecell{Distance to user's\\peak activity}} \\
+ & \multicolumn{6}{c}{Prior feedback weighted by:} \\
+ & \multicolumn{2}{c}{Uniform} & \multicolumn{2}{c}{Recency} & \multicolumn{2}{c}{\makecell{Distance to user's\\peak activity}} \\ [1ex]
  & (1) & (2) & (3) & (4) & (5) & (6) \\
 \midrule
  &  &  &  &  &  &  \\
-E[Reward]  & 0.786$^{***}$ & 0.839$^{***}$ & 0.885$^{***}$ & 0.903$^{***}$ & 0.755$^{***}$ & 0.797$^{***}$ \\
+Prior Feedback (All Posts)  & 0.786$^{***}$ & 0.839$^{***}$ & 0.885$^{***}$ & 0.903$^{***}$ & 0.755$^{***}$ & 0.797$^{***}$ \\
  & (0.019) & (0.019) & (0.018) & (0.018) & (0.017) & (0.017) \\ [1.8ex]
-E[Reward] $\times$ Experience  & -0.167$^{***}$ & -0.165$^{***}$ & -0.189$^{***}$ & -0.188$^{***}$ & -0.159$^{***}$ & -0.156$^{***}$ \\
+Prior Feedback $\times$ User's Experience  & -0.167$^{***}$ & -0.165$^{***}$ & -0.189$^{***}$ & -0.188$^{***}$ & -0.159$^{***}$ & -0.156$^{***}$ \\
  & (0.002) & (0.002) & (0.002) & (0.002) & (0.002) & (0.002) \\ [1.8ex]
-User's Excess Rewards  &  & 0.096$^{***}$ &  & 0.093$^{***}$ &  & 0.096$^{***}$ \\
+User-Specific Excess Feedback  &  & 0.096$^{***}$ &  & 0.093$^{***}$ &  & 0.096$^{***}$ \\
  &  & (0.004) &  & (0.004) &  & (0.004) \\ [1.8ex]
  &  &  &  &  &  &  \\
 Post Type $\times$ Territory RE & Y  & Y  & Y  & Y  & Y  & Y  \\
@@ -29,7 +29,7 @@ McFadden's Pseudo-R$^2$ & 0.275 & 0.277 & 0.280 & 0.281 & 0.275 & 0.277 \\ [1.8e
 \begin{tablenotes}[flushleft]
 \footnotesize
 \item Robust standard errors in parentheses. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.
-\item \textit{Notes:} This table reports estimated coefficients from the conditional logit model for learning described in Section \ref{sec_v4v} equation \eqref{eq_learning}. ``E[Reward]'' is the user's expected reward for each post type, calculated as a weighted average of the natural log of sats earned in the first 48 hours for previously made posts of each type. See Section \ref{sec_v4v} for a description of the model and weighting functions. ``Experience'' is the natural log of the number of posts the user has made. ``User's Excess Rewards'' is the average of the user's own rewards from each post type minus E[Reward].
+\item \textit{Notes:} This table reports estimated coefficients from the conditional logit model for learning described in Section \ref{sec_v4v} equation \eqref{eq_learning}. ``Prior Feedback'' is a weighted average of the $\ln$ of sats earned in the first 48 hours for previously posts of each type. See Section \ref{sec_v4v} for a description of the model and weighting functions. ``User's Experience'' is the $\ln$ of the number of posts the user has made. ``User-Specific Excess Feedback'' is the average of the user's own past rewards for each post in excess of the average over all prior posts of that type.
 \end{tablenotes}
 \end{threeparttable}
 \end{adjustbox}
