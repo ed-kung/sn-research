@@ -16,6 +16,19 @@ V_{itc} = \alpha E \left[\ln z_{itc} | I_{itc} \right] + \delta_{c} +\gamma_c \c
 \end{align}
 where $E\left[ \ln z_{itc} | I_{itc} \right]$ is the user's expected value of the $\ln$ of the sats they would receive on the post, conditional on their information set $I_{itc}$. $\delta_{c}$ is separate intercept for each post type, meant to reflect differences in baseline popularity of each post type.  $\gamma_c \cdot t$ are post type specific linear time trends, which capture changes to the popularity of different post types over time which are not explainable by observed tip feedback. $\epsilon_{itc}$ is an error term which captures idiosyncratic features such as the user's intrinsic desire to make a type-$c$ post in the moment. We model $\epsilon_{itc}$ as a standard Gumbel distribution, which turns the choice model into a standard multinomial logit model. Our hypothesis is that $\alpha > 0$; that is, the user's expected rewards for post type $c$ will shift his decision-making towards a greater likelihood of making a type-$c$ post.
 
+\subsection{Post types}
+
+To keep the model parsimonious, we categorize posts into five post types based on the number of words and the presence of images or hyperlinks in the post body. Table \ref{tbl_post_types_summary} shows the five types, their prevalence in the data, the average amount of sats earned in the first 48 hours, and the average number of replies received in the first 48 hours.
+
+The first type of post is a link-only post with no words in the post body. Link-only posts are posts that link to an external URL with no additional text in the post body. Link-only posts earn the least amount of sats, and are generally seen by users as low effort posts because it contains no original content. However, link-only posts are the most common type of post on Stacker News.
+
+The next four types of post are based on whether the post body contains above or below median number of words, and whether the post body contains images or hyperlinks. Posts with more words tend to earn more sats on average than posts with less words, and posts with images or hyperlinks in the body earn more sats when combined with more words. Posts with more words may be associated with more effort and more original content, which may thereby be rewarded with more tips. Posts with images may be more visually appealing than posts without images, and thus also earn more sats. Hyperlinks in posts with many words are usually associated with linked references and citations in the post body, another sign of quality that may be appropriately rewarded. 
+
+Table \ref{tbl_post_types_summary} shows that posts with an above median number of words and with images or hyperlinks in the body are the best rewarded, by a significant margin. Posts with an above median number of words, but without images or hyperlinks in the body, are the second most rewarded type. The typical earnings of below median length posts are about the same with or without images and hyperlinks. And finally, link posts are the least rewarded post by a significant margin.
+
+
+
+
 \subsection{Information environment assumptions}
 
 It is not possible for us, as the researchers, to know the information set of each user in each moment that a choice was made. We therefore proceed by making different assumptions about the information environment and showing that the results are robust to the choice of assumption.
@@ -36,7 +49,19 @@ As a third possibility, we consider weights that are based on the proximity of t
 
 Table \ref{tbl_learning} shows the estimation results for this choice model under the aforementioned information assumptions. Columns 1-2 of Table \ref{tbl_learning} show the estimated coefficients under uniform weights, columns 3-4 show the coefficients under recency-based weights, and columns 5-6 shows the coefficients under proximity-to-peak-hours weights.
 
-In the Table, ``Observed Tips'' is equivalent to $E\left[ \ln z_{itc} | I_{itc} \right]$. In addition, we enrich the model by interacting Observed Tips with a measure of the user's experience level, measured by the natural log of the number of posts they've made. This interaction captures a natural feature of learning models which says that learning slows down as the user gets more experienced. When a user has many posts under their belt, they will already have a good sense of what works well for them and what doesn't, and observed tips on other posts are no longer as influential in their decision-making. 
+In the Table, ``Observed Tips'' is equivalent to $E\left[ \ln z_{itc} | I_{itc} \right]$. In all six specifications shown, the coefficient on Observed Tips is estimated to be positive and statistically significant. This confirms our hypothesis that $\alpha>0$; in other words, we find that users shift their posting behavior towards the post types that they observed to be better rewarded. This finding is robust to the various assumptions we made about the information environment.
 
+In addition, we enrich the model by interacting Observed Tips with a measure of the user's experience level, measured by the natural log of the number of posts they've made. This interaction captures a natural feature of learning models which says that learning slows down as the user gets more experienced. When a user has many posts under their belt, they will already have a good sense of what works well for them and what doesn't, and observed tips on other posts are no longer as influential in their decision-making. Consistent with learning theory, we find a negative and statistically significant interaction between Observed Tips and the user's experience level. The finding is robust to our different choices of weighting functions.
 
+Lastly, in columns 2, 4, and 6, we augment the model with a variable called ``User Excess Tips''.  ``User Excess Tips'' is equal to:
+\begin{align*}
+\text{User Excess Tips} &= \frac{\sum_{t^\prime < t} y_{it^\prime c} w_{itc, it^\prime c} \ln z_{it^\prime c}}{\sum_{t^\prime < t} y_{it^\prime c} w_{itc, it^\prime c} } - E\left[ \ln z_{itc} | I_{itc} \right]
+\end{align*}
+User Excess Tips measures the degree to which the user's own earnings on posts of type $c$, up to time $t$, have exceeded their estimate based on all observed posts. We expect the coefficient on User Excess Tips to be positive, because a user's own posts are expected to be more salient to their belief formation than other users' posts. A user's own posts could be more salient either because they pay more attention to their own posts, or because their excess earnings relative to other users conveys information about a post-type specific match quality. In either case, a user who earns more tips on a particular post type relative to other users is expected to shift their posting towards that post type. That is what we find, estimating a positive and statistically significant coefficient in all three specifications.
+
+\subsection{Discussion}
+
+In this section, we found evidence confirming our hypothesis that users will respond to tip-driven feedback by shifting their posting behavior towards posts that appear to be better rewarded. Consistent with learning theory, we also found that new users are more responsive to prior observed tips than seasoned users, and that users are additionally responsive to excess tip feedback on their own posts. The findings were robust to various assumptions about the information environment.
+
+If users shift their posting behavior towards better-rewarded types, then over time we should expect to see the share of those types increase in the aggregate, while the share of poorly rewarded types decreases. Figure \ref{fig_v4v_q_trend} shows that this is indeed what we see. Link-only posts, the lowest effort and least rewarded type of post, decreased precipitously in the aggregate from the start of the sample period to the end. Above-median length posts with images or hyperlinks increased the most.  The findings suggest that tip-driven monetary feedback mechanisms could help to shape the overall quality of user submitted content, even if the monetary value of the tips is very small. 
 
