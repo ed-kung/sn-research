@@ -6,10 +6,9 @@
 \begin{threeparttable}
 \begin{tabular}{lcccc} 
 \toprule
- & \multicolumn{4}{c}{\textit{Dependent variable:}} \\ [1ex]
-\cline{2-5} 
- & \multicolumn{4}{c}{log(Zaps)} \\ [1ex]
- & (1) & (2) & (3) & (4)\\ [1ex]
+ & \multicolumn{4}{c}{\textit{Dependent variable:}} \\ 
+ & \multicolumn{4}{c}{ln(Zaps)} \\ 
+ & (1) & (2) & (3) & (4)\\ 
 \midrule
  &  &  &  &  \\
 ln(Posting Cost)  & 0.393$^{***}$ & 0.273$^{***}$ & 0.219$^{***}$ & 0.091$^{**}$ \\
@@ -22,12 +21,15 @@ Week FE                 & N & Y & Y & Y \\
 Territory Operator FE   & N & N & Y & Y \\
 User FE                 & N & N & N & Y \\
 & & & & \\
-Observations  & 179,480 & 179,477 & 179,476 & 178,197 \\ [1.8ex]
+Observations  & 179,480 & 179,477 & 179,476 & 178,197 \\
+R$^2$  & 0.079 & 0.181 & 0.184 & 0.402 \\ [1.8ex] 
 \bottomrule
 \end{tabular} 
 \begin{tablenotes}[flushleft]
 \footnotesize
-\item Robust standard errors in parentheses. * $p<0.1$, ** $p<0.05$, *** $p<0.01$.
+\item[] \parbox[t]{\linewidth}{%
+\hfill * $p<0.1$, ** $p<0.05$, *** $p<0.01$.
+}
 \item \textit{Notes:} Regression of number of sats a post earns in the first 48 hours on posting cost. The unit of observation is a post. Standard errors are clustered by territory.
 \end{tablenotes}
 \end{threeparttable}
