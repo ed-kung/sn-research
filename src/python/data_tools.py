@@ -48,6 +48,8 @@ def find_subowner(df, left_time_col='created_at'):
     df = df.copy()
     tdf = get_territory_transfers()
     tdf = tdf.rename(columns={'timeStamp': left_time_col, 'userIdTo': 'subOwner'})
+    df[left_time_col] = df[left_time_col].astype('datetime64[s, UTC]')
+    tdf[left_time_col] = tdf[left_time_col].astype('datetime64[s, UTC]')
     tdf = tdf.sort_values(by=left_time_col).reset_index(drop=True)
     df = df.sort_values(by=left_time_col).reset_index(drop=True)
     df = pd.merge_asof(
@@ -441,6 +443,9 @@ def get_territory_by_day_panel():
     tdf = tdf.drop(columns=['first_post_date'])
 
     # merge on billing cycles
+    tdf['date'] = tdf['date'].astype('datetime64[s, UTC]')
+    billing_cycles['billing_cycle_start'] = billing_cycles['billing_cycle_start'].astype('datetime64[s, UTC]')
+    billing_cycles['billing_cycle_end'] = billing_cycles['billing_cycle_end'].astype('datetime64[s, UTC]')
     tdf = tdf.sort_values(by='date', ascending=True)
     billing_cycles = billing_cycles.sort_values(by='billing_cycle_start', ascending=True)
     tdf = pd.merge_asof(
@@ -454,7 +459,7 @@ def get_territory_by_day_panel():
 
     # merge on n_posts
     mask = posts_df['invoiceActionState'] != 'FAILED'
-    posts_df['date'] = posts_df['created_at'].dt.floor('D')
+    posts_df['date'] = posts_df['created_at'].dt.floor('D').astype('datetime64[s, UTC]')
     n_posts = posts_df.loc[mask].groupby(['subName', 'date']).agg(
         n_posts = ('itemId', 'count')
     ).reset_index()
@@ -477,6 +482,7 @@ def get_territory_by_day_panel():
     tdf = tdf.drop(columns=['sub_n_posts'])
 
     # merge on posting fees
+    fees_df['date'] = fees_df['date'].astype('datetime64[s, UTC]')
     tdf = tdf.sort_values(by='date', ascending=True)
     fees_df = fees_df.sort_values(by='date', ascending=True)
     tdf = pd.merge_asof(tdf, fees_df, by='subName', on='date', direction='backward')
