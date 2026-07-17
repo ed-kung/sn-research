@@ -1,4 +1,69 @@
-\section{Proofs}
+\section{A Model}
+
+First, we develop a simple model of posting behavior to ground our empirical work. Then, we test whether the predictions of the model are supported by the data.
+
+\subsection{A model of pay-to-post}
+
+We envision a model in which a user receives ``post ideas'' as a Poisson arrival process with rate $\gamma$. Post ideas arrive with a quality level $q$, which affects how other users respond to the post, and an intrinsic motivation to post it, $\epsilon$. The level of internal motivation may be correlated with post quality, and they are drawn from a joint probability density function $f(q,\epsilon)$. We allow different users to draw from different distributions of $(q,\epsilon)$, but for now we focus on the decisions of a single user.
+
+By Bayes' Rule, $f(q, \epsilon) = f_{\epsilon|q} (\epsilon | q) f_q (q)$, where $f_{\epsilon|q}(\cdot)$ is the conditional density of $\epsilon$ given $q$, and $f_q(\cdot)$ is the marginal density of $q$. We assume that $f_{\epsilon|q}(\cdot)$ is strictly log-concave and weakly satisfies the monotone likelihood ratio property in $\epsilon$ with respect to $q$:
+
+\begin{assumption}[Log Concavity]\label{asm_logconcavity}
+For each $q$, $f_{\epsilon|q}(\cdot | q)$ is strictly log-concave; that is, $\ln f_{\epsilon|q} (\epsilon | q)$ is strictly concave in $\epsilon$.
+\end{assumption}
+\begin{assumption}[Monotone Likelihood Ratio Property]\label{asm_mlrp}
+For any $q_2 > q_1$, the likelihood ratio of the conditional densities,
+\begin{align*}
+\ell(\epsilon;q_1, q_2) = \frac{f_{\epsilon|q}(\epsilon|q_2)}{f_{\epsilon|q}(\epsilon|q_1)}
+\end{align*}
+is weakly increasing in $\epsilon$.
+\end{assumption}
+\noindent \emph{Remark.}  Assumption \ref{asm_logconcavity} limits the heaviness of the tail of the motivation distribution. Intuitively, it ensures that the extreme tail of the motivation distribution is not thick enough to swamp quality selection effects at very high posting costs. It is not a strong assumption, and it is satisfied by most commonly used distributional families, including the normal and logistic distributions.\footnote{Weaker, local conditions about the hazard rate in the neighborhood of the current posting cost would also suffice, but we state the stronger condition of global log-concavity for simplicity. Moreover, strict log-concavity is assumed for simplicity, but it suffices to assume either strict log-concavity or strict monotone likelihood ratio property; we do not need strictness for both.}
+
+Assumption \ref{asm_mlrp} is a non-negative dependence condition between post quality $q$ and intrinsic motivation $\epsilon$. Informally, it says that higher quality ideas tend to come with (weakly) higher intrinsic desire to post: when $q$ is higher, the distribution of $\epsilon$ shifts to the right. Independence between $\epsilon$ and $q$ is allowed as a special case, but the assumption rules out systematic negative dependence. In our context, this means that users who receive a high quality post idea are also (weakly) more likely to feel a strong intrinsic desire to post it. As we shall document later, this is consistent with users' self reported perceptions of their own motivations. \hfill \qedsymbol
+
+~
+
+\noindent Once a post is made, zaps arrive according to a Poisson process. Both the arrival rate of zaps and the amount of each zap are dependent on the quality of the post, $q$. Let $\lambda(q)$ be the arrival rate as a function of $q$, and let $E[z|q]$ be the expected zap amount per zap conditional on $q$. 
+
+Supposing the user has a discount factor of $\rho$, the expected present value of the Poisson stream of zaps is equal to:\footnote{This follows from $V(q) = \int_{0}^{\infty} e^{-\rho t} \lambda(q) E[z|q] dt$.}
+\begin{align}
+V(q) = \frac{\lambda(q)}{\rho} E \left[z | q\right] \label{eq_V}
+\end{align}
+We assume that $V(q)$ is continuous and strictly increasing in $q$, which merely says that the expected present value of zaps is higher for higher quality posts:
+
+\begin{assumption}[Monotone Returns to Quality]\label{asm_monotonicity}
+$V(q) = \frac{\lambda(q)}{\rho} E[z|q]$ is continuous and strictly increasing in $q$.
+\end{assumption}
+
+~
+
+\noindent  The user will make the post if their expected present value of zaps plus their intrinsic motivation is greater than the posting cost $c$:
+\begin{align}
+\text{Post} = 1 \text{ if } V(q) + \epsilon > c \text{ and } 0 \text{ otherwise }
+\end{align}
+From the perspective of the user, $c$ is fixed and known at the time of the post.
+
+We now demonstrate conditions under which an increase in posting cost $c$ will lead to fewer posts, but higher quality posts.
+
+\begin{proposition} \label{prop_pay_to_post}
+Suppose Assumptions \ref{asm_logconcavity}-\ref{asm_monotonicity} hold. Then an increase in $c$:
+\begin{enumerate}[label=(\roman*)]
+\item strictly decreases the probability that the post idea is posted, and
+\item strictly increases the expected quality of posts, conditional on posting.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+A proof is provided in the appendix.
+\end{proof}
+
+\noindent \emph{Remark.} Proposition \ref{prop_pay_to_post} implies that when posting cost increases, users are less likely to post, but that when they do post, the average quality of the post is higher. Although the proposition is stated from the perspective of a single user, we note that as long as the global joint distribution of $(q,\epsilon)$ holds to Assumptions \ref{asm_logconcavity} and \ref{asm_mlrp}, and if Assumption \ref{asm_monotonicity} also holds for all users, then Proposition \ref{prop_pay_to_post} applies in the aggregate, even if users have heterogeneous marginal densities for $q$ and $\epsilon$. 
+
+The result of Proposition \ref{prop_pay_to_post} extends to a setting with multiple territories. Users post in the territory $j$ that maximizes $V_j(q_j) + \epsilon_j - c_j$, provided it is positive. When territory $j$ raises its posting cost $c_j$, users' outside options are unaffected, so the same logic applies: as long as the population-level joint distribution of quality and motivation within each territory satisfies Assumptions \ref{asm_logconcavity}-\ref{asm_monotonicity}, a territory that raises its posting cost will see fewer but higher quality posts. \hfill \qedsymbol
+
+
+
 
 \subsubsection*{Proof of Proposition \ref{prop_pay_to_post}}
 

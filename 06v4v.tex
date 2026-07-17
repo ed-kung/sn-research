@@ -1,3 +1,42 @@
 \section{Tip-based learning}\label{sec_v4v}
 
-We now consider our second hypothesis: that the types of content better rewarded by zaps will increase in prevalence over time as users learn that these kinds of content are better rewarded. The evidence presented in this section follows the intuition of 
+We now consider our second hypothesis: that the types of content better rewarded by zaps will increase in prevalence over time as users learn that these kinds of content are better rewarded. 
+
+\subsection{Model of post type choice}
+
+To test this hypothesis, we must first develop some notation for modeling user choice of post type. Consider a user $i$ at time $t$, deciding to make a post from a finite number of post types, $c = 1,\ldots,C$. In theory, the post type could measure any number of different post attributes. In practice, and for parsimony's sake, we limit ourselves to a small number of types based primarily on the length of the post, whether it is a link-only post, and whether it includes hyperlinks and images.
+
+Let $V_{itc}$ be user $i$'s utility for making a post of type $c$ at time $t$. Let $y_{itc}$ equal 1 if the user actually makes a type $c$ post at time $t$, and 0 otherwise. The user chooses the post type that maximizes $V_{itc}$. Thus:
+\begin{align*}
+y_{itc} = 1\left[ V_{itc} \geq V_{itc^\prime} ~ \forall c^\prime=1, \ldots, C \right]
+\end{align*}
+We model the user's utility as follows:
+\begin{align}
+V_{itc} = \alpha E \left[\ln z_{itc} | I_{itc} \right] + \delta_{c} +\gamma_c \cdot t + \epsilon_{itc}
+\end{align}
+where $E\left[ \ln z_{itc} | I_{itc} \right]$ is the user's expected value of the $\ln$ of the sats they would receive on the post, conditional on their information set $I_{itc}$. $\delta_{c}$ is separate intercept for each post type, meant to reflect differences in baseline popularity of each post type.  $\gamma_c \cdot t$ are post type specific linear time trends, which capture changes to the popularity of different post types over time which are not explainable by observed tip feedback. $\epsilon_{itc}$ is an error term which captures idiosyncratic features such as the user's intrinsic desire to make a type-$c$ post in the moment. We model $\epsilon_{itc}$ as a standard Gumbel distribution, which turns the choice model into a standard multinomial logit model. Our hypothesis is that $\alpha > 0$; that is, the user's expected rewards for post type $c$ will shift his decision-making towards a greater likelihood of making a type-$c$ post.
+
+\subsection{Information environment assumptions}
+
+It is not possible for us, as the researchers, to know the information set of each user in each moment that a choice was made. We therefore proceed by making different assumptions about the information environment and showing that the results are robust to the choice of assumption.
+
+To start with, we calculate $E\left[ \ln z_{itc} | I_{itc} \right]$ as follows:
+\begin{align}
+E\left[ \ln z_{itc} | I_{itc} \right] = \frac{\sum_{i^\prime} \sum_{t^\prime < t} y_{i^\prime t^\prime c} w_{itc,i^\prime t^\prime c} \ln z_{i^\prime t^\prime c} }{\sum_{i^\prime} \sum_{t^\prime < t} y_{i^\prime t^\prime c} w_{itc, i^\prime t^\prime c}}
+\end{align}
+In other words, we calculate $E\left[ \ln z_{itc} | I_{itc} \right]$ as the weighted average of the realized ln(zaps) for all type $c$ posts made before time $t$. Variation is introduced across users and across times by means of the weights, which explicitly depend on both $itc$ (the user making the decision) and $i^\prime t^\prime c$ (the post from which information is being drawn). 
+
+As a baseline, we consider uniform weights as long as the post was made after the user became active. That is, $w_{itc,i^\prime t^\prime c} = 1$ so long as $t^\prime$ is after user $i$'s first post. This assumes that user $i$ observes and draws information from all posts made from the time he became active to the current time.
+
+As a second possibility, we consider weights that are based on recency. In this weighting scheme, $w_{itc,i^\prime t^\prime c} = e^{-\lambda (t - t^\prime)}$, where $\lambda$ is chosen for a half-life of 4 weeks. This information environment assumes that the user pays more attention to recent posts than to old posts, and variation is driven by the timing of the user's posts.
+
+As a third possibility, we consider weights that are based on the proximity of the post to the user's peak activity hours. The idea of this weighting scheme derives from the fact that Stacker News is an international platform, and that different users are most active during different times of the day. For each user $i$, we measure $s_{i}^*$, the average time in the day (measured in seconds from midnight) that the user tends to post. Then, the weights are calculated as $w_{itc, i^\prime t^\prime c} = \exp\left(-\frac{d(s_i^*, t^\prime)^2}{2\sigma^2} \right)$, where $d(s_i^*, t^\prime)$ measures the time-of-day distance between $t^\prime$ and $s_i^*$. This information environment assumes that users are more aware of posts made during their peak activity hours.  $\sigma^2$ is chosen to generate a half-life of 3 hours.
+
+\subsection{Results}
+
+Table \ref{tbl_learning} shows the estimation results for this choice model under the aforementioned information assumptions. Columns 1-2 of Table \ref{tbl_learning} show the estimated coefficients under uniform weights, columns 3-4 show the coefficients under recency-based weights, and columns 5-6 shows the coefficients under proximity-to-peak-hours weights.
+
+In the Table, ``Observed Tips'' is equivalent to $E\left[ \ln z_{itc} | I_{itc} \right]$. In addition, we enrich the model by interacting Observed Tips with a measure of the user's experience level, measured by the natural log of the number of posts they've made. This interaction captures a natural feature of learning models which says that learning slows down as the user gets more experienced. When a user has many posts under their belt, they will already have a good sense of what works well for them and what doesn't, and observed tips on other posts are no longer as influential in their decision-making. 
+
+
+
