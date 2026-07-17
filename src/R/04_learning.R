@@ -14,21 +14,18 @@ DATA_PATH <- LOCAL_CONFIG["DATA_PATH"][[1]]
 
 # ---- Helper functions
 
-# building formulas
-build_fmla <- function(yvar, covars, fevars=c()) {
-  if (length(covars)>0) {
-    covars_fmla <- paste(covars, collapse = " + ")
+# regression function
+reg_func <- function(signal_var, experience_var, surprise_var, data) {
+  data$signal <- data[[signal_var]]
+  data$exp <- log1p(data[[experience_var]])
+  data$signal_x_exp <- data$signal * data$exp
+  if (nchar(surprise_var)==0) {
+    fmla <- as.formula("cbind(chosen, itemId) ~ signal + signal_x_exp + post_type:time")
+  } else {
+    data$surpr <- data[[surprise_var]]
+    fmla <- as.formula("cbind(chosen, itemId) ~ signal + signal_x_exp + surpr + post_type:time")
   }
-  else {
-    covars_fmla <- "1"
-  }
-  if (length(fevars)>0) {
-    fevars_fmla <- paste(fevars, collapse = " + ")
-  }
-  else {
-    fevars_fmla <- "0"
-  }
-  as.formula(paste(yvar, " ~ ", covars_fmla, " | ", fevars_fmla))
+  result <- mclogit(fmla, random = ~1 | post_type/subId, data=data)
 }
 
 # extracting regression results
@@ -44,14 +41,12 @@ extract_reg <- function(reg, reg_name) {
   # stats
   stats_df <- data.frame(
     regression_name = reg_name,
-    coef_name = c("num_obs", "R2"),
-    estimate = c(reg$nobs, fitstat(reg, "r2")[[1]]),
+    coef_name = c("num_obs", "pseudo_r2"),
+    estimate = c(nobs(reg), 1 - (reg$deviance / reg$null.deviance)),
     serr = NA_real_
   )
   return(rbind(coef_df, stats_df))
 }
-
-
 
 # ---- Data loading and cleaning
 
@@ -62,68 +57,31 @@ df <- read_parquet(in_filename)
 df$post_type <- as.factor(df$post_type)
 df$time <- df$weekId / max(df$weekId)  # linear time trend normalized to 0-1
 df$subId <- as.factor(df$subId)
+df$surprise <- df$cum_avg_lnsats48_user - df$cum_avg_lnsats48
 
-# rename some variables for faster iteration
-df$sig <- df$cum_avg_lnsats48
-df$sigr <- df$cum_avg_lnsats48_recent
-df$sigu <- df$cum_avg_lnsats48_user
-df$siga <- df$cum_avg_lnsats48_activity 
-df$exp <- log1p(df$experience_posts)
+r0 <- reg_func("cum_avg_lnsats48", "experience_posts", "", df)
+r1 <- reg_func("cum_avg_lnsats48_recent", "experience_posts", "", df)
+r2 <- reg_func("cum_avg_lnsats48_activity", "experience_posts", "", df)
+r3 <- reg_func("cum_avg_lnsats48", "experience_posts", "surprise", df)
+r4 <- reg_func("cum_avg_lnsats48_recent", "experience_posts", "surprise", df)
+r5 <- reg_func("cum_avg_lnsats48_activity", "experience_posts", "surprise", df)
 
-r0 <- mclogit(cbind(chosen,itemId) ~ sig + sig:exp, random=~1 | post_type/subId, data=df)
 summary(r0)
-r1 <- mclogit(cbind(chosen,itemId) ~ sig + sig:exp + sigu + sigu:exp, random=~1 | post_type/subId, data=df)
 summary(r1)
-r2 <- mclogit(cbind(chosen,itemId) ~ sig + sig:exp + sigr + sigr:exp, random=~1 | post_type/subId, data=df)
 summary(r2)
-r3 <- mclogit(cbind(chosen,itemId) ~ sig + sig:exp + siga + siga:exp, random=~1 | post_type/subId, data=df)
 summary(r3)
+summary(r4)
+summary(r5)
 
-
-
-r1 <- mclogit(cbind(chosen,itemId) ~ sigr + sigr:exp, random=~1 | post_type/subId, data=df)
-summary(r1)
-r1b <- mclogit(cbind(chosen,itemId) ~ sigr + sigr:exp + sigu + sigu:exp, random=~1 | post_type/subId, data=df)
-summary(r1b)
-
-r2 <- mclogit(cbind(chosen,itemId) ~ siga + siga:exp, random=~1 | post_type/subId, data=df)
-summary(r2)
-r2b <- mclogit(cbind(chosen,itemId) ~ siga + siga:exp + sigu + sigu:exp, random=~1 | post_type/subId, data=df)
-summary(r2b)
-
-
-
-
-
-regfunc <- function(signal_var, exp_var) {
-  df$signal <- df[[signal_var]]
-  df$exp <- log1p(df[[exp_var]])
-  df$signal_x_exp <- df$signal * df$exp
-  fit <- mclogit(
-    cbind(chosen, itemId) ~ signal + signal_x_exp + post_type:time,
-    random = ~ 1 | post_type/subId,
-    data = df
-  )
-  return(fit)
-}
-
-r0 <- mclogit(cbind(chosen,itemId) ~ cum_avg_lnsats48 + cum_avg_lnsats48*log1p(experience_posts) + post_type:linear_time, random = ~ 1 | post_type/subId, data=df)
-summary(r0)
-r1 <- mclogit(cbind(chosen,itemId) ~ cum_avg_lnsats48 + cum_avg_lnsats48*log1p(experience_posts) + cum_avg_lnsats48_user + cum_avg_lnsats48_user*log1p(experience_posts) + post_type:linear_time, random = ~ 1 | post_type/subId, data=df)
-summary(r1)
-
-
-#r0 <- regfunc("cum_avg_lnsats48", "experience_posts")
-#r1 <- regfunc("cum_avg_lnsats48_user", "experience_posts")
-#r2 <- regfunc("cum_avg_lnsats48_recent", "experience_posts")
-#r3 <- regfunc("cum_avg_lnsats48_activity", "experience_posts")
-
-keepvars <- c("signal", "signal_x_exp")
-
-stargazer(
-  r0, r1, r2, r3, type="text",
-  keep=keepvars
+coefs_df <- rbind(
+  extract_reg(r0, "r0"),
+  extract_reg(r1, "r1"),
+  extract_reg(r2, "r2"),
+  extract_reg(r3, "r3"),
+  extract_reg(r4, "r4"),
+  extract_reg(r5, "r5")
 )
 
-
+out_filename <- paste0(DATA_PATH, "/learning_analysis_coefs.parquet")
+write_parquet(coefs_df, out_filename)
 
