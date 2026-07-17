@@ -15,17 +15,18 @@ DATA_PATH <- LOCAL_CONFIG["DATA_PATH"][[1]]
 # ---- Helper functions
 
 # regression function
-reg_func <- function(signal_var, experience_var, surprise_var, data) {
+reg_func <- function(signal_var, experience_var, user_signal_var, data) {
   data$signal <- data[[signal_var]]
   data$exp <- log1p(data[[experience_var]])
   data$signal_x_exp <- data$signal * data$exp
-  if (nchar(surprise_var)==0) {
-    fmla <- as.formula("cbind(chosen, itemId) ~ signal + signal_x_exp + post_type:time")
+  if (nchar(user_signal_var)==0) {
+    fmla <- as.formula("cbind(chosen, itemId) ~ signal + signal_x_exp + post_type*time")
   } else {
-    data$surpr <- data[[surprise_var]]
-    fmla <- as.formula("cbind(chosen, itemId) ~ signal + signal_x_exp + surpr + post_type:time")
+    data$surpr <- data[[user_signal_var]] - data[[signal_var]]
+    fmla <- as.formula("cbind(chosen, itemId) ~ signal + signal_x_exp + surpr + post_type*time")
   }
-  result <- mclogit(fmla, random = ~1 | post_type/subId, data=data)
+  #result <- mclogit(fmla, random = ~1 | post_type/subId, data=data)
+  result <- mclogit(fmla, data=data)
 }
 
 # extracting regression results
@@ -56,21 +57,24 @@ df <- read_parquet(in_filename)
 
 # filter out na values
 df <- filter(df, !is.na(df$cum_avg_lnsats48))
+df <- filter(df, !is.na(df$cum_avg_lnsats48_u))
 df <- filter(df, !is.na(df$cum_avg_lnsats48_recent))
-df <- filter(df, !is.na(df$cum_avg_lnsats48_user))
+df <- filter(df, !is.na(df$cum_avg_lnsats48_recent_u))
 df <- filter(df, !is.na(df$cum_avg_lnsats48_activity))
+df <- filter(df, !is.na(df$cum_avg_lnsats48_activity_u))
+
 
 df$post_type <- as.factor(df$post_type)
 df$time <- df$weekId / max(df$weekId)  # linear time trend normalized to 0-1
-df$subId <- as.factor(df$subId)
-df$surprise <- df$cum_avg_lnsats48_user - df$cum_avg_lnsats48
+#df$subId <- as.factor(df$subId)
+#df$surprise <- df$cum_avg_lnsats48_user - df$cum_avg_lnsats48
 
 r0 <- reg_func("cum_avg_lnsats48", "experience_posts", "", df)
 r1 <- reg_func("cum_avg_lnsats48_recent", "experience_posts", "", df)
 r2 <- reg_func("cum_avg_lnsats48_activity", "experience_posts", "", df)
-r3 <- reg_func("cum_avg_lnsats48", "experience_posts", "surprise", df)
-r4 <- reg_func("cum_avg_lnsats48_recent", "experience_posts", "surprise", df)
-r5 <- reg_func("cum_avg_lnsats48_activity", "experience_posts", "surprise", df)
+r3 <- reg_func("cum_avg_lnsats48", "experience_posts", "cum_avg_lnsats48_u", df)
+r4 <- reg_func("cum_avg_lnsats48_recent", "experience_posts", "cum_avg_lnsats48_recent_u", df)
+r5 <- reg_func("cum_avg_lnsats48_activity", "experience_posts", "cum_avg_lnsats48_activity_u", df)
 
 summary(r0)
 summary(r1)
