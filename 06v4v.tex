@@ -54,9 +54,9 @@ In the Table, ``Observed Tips'' is equivalent to $E\left[ \ln z_{itc} | I_{itc} 
 In addition, we enrich the model by interacting Observed Tips with a measure of the user's experience level, measured by the natural log of the number of posts they've made. This interaction captures a natural feature of learning models which says that learning slows down as the user gets more experienced. When a user has many posts under their belt, they will already have a good sense of what works well for them and what doesn't, and observed tips on other posts are no longer as influential in their decision-making. Consistent with learning theory, we find a negative and statistically significant interaction between Observed Tips and the user's experience level. The finding is robust to our different choices of weighting functions.
 
 Lastly, in columns 2, 4, and 6, we augment the model with a variable called ``User Excess Tips''.  ``User Excess Tips'' is equal to:
-\begin{align*}
+\begin{align}
 \text{User Excess Tips} &= \frac{\sum_{t^\prime < t} y_{it^\prime c} w_{itc, it^\prime c} \ln z_{it^\prime c}}{\sum_{t^\prime < t} y_{it^\prime c} w_{itc, it^\prime c} } - E\left[ \ln z_{itc} | I_{itc} \right]
-\end{align*}
+\end{align}
 User Excess Tips measures the degree to which the user's own earnings on posts of type $c$, up to time $t$, have exceeded their estimate based on all observed posts. We expect the coefficient on User Excess Tips to be positive, because a user's own posts are expected to be more salient to their belief formation than other users' posts. A user's own posts could be more salient either because they pay more attention to their own posts, or because their excess earnings relative to other users conveys information about a post-type specific match quality. In either case, a user who earns more tips on a particular post type relative to other users is expected to shift their posting towards that post type. That is what we find, estimating a positive and statistically significant coefficient in all three specifications.
 
 \subsection{Discussion}
