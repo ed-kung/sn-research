@@ -12,18 +12,18 @@
  & (1) & (2) & (3) & (4) & (5) & (6) \\
 \midrule
  &  &  &  &  &  &  \\
-Observed Tips  & 0.844$^{***}$ & 0.905$^{***}$ & 0.980$^{***}$ & 0.991$^{***}$ & 0.819$^{***}$ & 0.881$^{***}$ \\
- & (0.018) & (0.018) & (0.017) & (0.017) & (0.016) & (0.017) \\ [1.8ex]
-Observed Tips $\times$ User's Experience  & -0.187$^{***}$ & -0.181$^{***}$ & -0.207$^{***}$ & -0.206$^{***}$ & -0.177$^{***}$ & -0.173$^{***}$ \\
- & (0.002) & (0.002) & (0.002) & (0.002) & (0.002) & (0.002) \\ [1.8ex]
-User Excess Tips  &  & 0.123$^{***}$ &  & 0.019$^{***}$ &  & 0.117$^{***}$ \\
- &  & (0.003) &  & (0.003) &  & (0.003) \\ [1.8ex]
+Observed Tips  & 1.191$^{**}$ & 1.328$^{***}$ & 1.311$^{***}$ & 1.304$^{***}$ & 1.244$^{***}$ & 1.371$^{***}$ \\
+ & (0.487) & (0.505) & (0.433) & (0.443) & (0.466) & (0.482) \\ [1.8ex]
+Observed Tips $\times$ User's Experience  & -0.259$^{***}$ & -0.252$^{***}$ & -0.266$^{***}$ & -0.266$^{***}$ & -0.249$^{***}$ & -0.246$^{***}$ \\
+ & (0.091) & (0.083) & (0.086) & (0.086) & (0.088) & (0.082) \\ [1.8ex]
+User Excess Tips  &  & 0.221$^{**}$ &  & -0.011$^{}$ &  & 0.177$^{**}$ \\
+ &  & (0.091) &  & (0.048) &  & (0.083) \\ [1.8ex]
  &  &  &  &  &  &  \\
-Post Type FE & Y  & Y  & Y  & Y  & Y  & Y  \\
-Post Type $\times$ Linear Time Trend & Y  & Y  & Y  & Y  & Y  & Y  \\
+Type-Specific Intercepts & Y  & Y  & Y  & Y  & Y  & Y  \\
+Type-Specific Linear Time Trends & Y  & Y  & Y  & Y  & Y  & Y  \\
  &  &  &  &  &  &  \\
-Observations  & 166,187 & 166,187 & 166,187 & 166,187 & 166,187 & 166,187 \\ 
-McFadden's Pseudo-R$^2$ & 0.209 & 0.212 & 0.214 & 0.215 & 0.209 & 0.212 \\ [1.8ex]
+Observations  & 82,173 & 82,173 & 82,173 & 82,173 & 82,173 & 82,173 \\ 
+McFadden's Pseudo-R$^2$ & 0.072 & 0.079 & 0.075 & 0.075 & 0.071 & 0.077 \\ [1.8ex]
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]
@@ -31,7 +31,7 @@ McFadden's Pseudo-R$^2$ & 0.209 & 0.212 & 0.214 & 0.215 & 0.209 & 0.212 \\ [1.8e
 \item[] \parbox[t]{\linewidth}{%
 \hfill * $p<0.1$, ** $p<0.05$, *** $p<0.01$.
 }
-\item \textit{Notes:} This table reports estimated coefficients for the conditional logit model of post type choice described in Section \ref{sec_v4v_model}. Each unit of observation is a user $i$'s choice to make a post of type $c$ at time $t$. The user chooses the post type based on their observation of tips earned by posts of each type. ``Observed Tips'' is a weighted average of ln(sats) earned on posts of each type $c$ prior to time $t$. See Section \ref{sec_v4v} for a description of the model and weighting functions. ``User's Experience'' is the $\ln$ of the number of posts the user $i$ has made up to time $t$. ``User Excess Tips'' is the weighted average of the user's own ln(sats) for each post type $c$ earned in excess of the overall weighted average for that post type.
+\item \textit{Notes:} This table reports estimated coefficients for the conditional logit model of post type choice described in Section \ref{sec_v4v_model}. Each unit of observation is a user $i$'s choice to make a post of type $c$ at time $t$. The user chooses the post type based on their observation of tips earned by posts of each type. ``Observed Tips'' is a weighted average of ln(sats) earned on posts of each type $c$ prior to time $t$. See Section \ref{sec_v4v} for a description of the model and weighting functions. ``User's Experience'' is the $\ln$ of the number of posts the user $i$ has made up to time $t$. ``User Excess Tips'' is the weighted average of the user's own ln(sats) for each post type $c$ earned in excess of the overall weighted average for that post type. Standard errors are clustered by user.
 \end{tablenotes}
 \end{threeparttable}
 \end{adjustbox}

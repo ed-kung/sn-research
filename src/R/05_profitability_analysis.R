@@ -64,10 +64,10 @@ df$new_account <- df$account_age<=9
 
 # --- Run regressions
 
-r1 <- feols(became_inactive ~ unprofitable, data=df)
-r2 <- feols(became_inactive ~ unprofitable + log_items, data=df)
-r3 <- feols(became_inactive ~ unprofitable + log_items | weekId, data=df)
-r4 <- feols(became_inactive ~ unprofitable + unprofitable_X_mom2_growth + log_items | weekId, data=df)
+r1 <- feols(became_inactive ~ unprofitable, data=df, vcov = ~userId)
+r2 <- feols(became_inactive ~ unprofitable + log_items, data=df, vcov = ~userId)
+r3 <- feols(became_inactive ~ unprofitable + log_items | weekId, data=df, vcov = ~userId)
+r4 <- feols(became_inactive ~ unprofitable + unprofitable_X_mom2_growth + log_items | weekId, data=df, vcov = ~userId)
 
 etable(r1, r2, r3, r4)
 
