@@ -54,6 +54,12 @@ in_filename <- paste0(DATA_PATH, "/learning_analysis_data.parquet")
 
 df <- read_parquet(in_filename)
 
+# filter out na values
+df <- filter(df, !is.na(df$cum_avg_lnsats48))
+df <- filter(df, !is.na(df$cum_avg_lnsats48_recent))
+df <- filter(df, !is.na(df$cum_avg_lnsats48_user))
+df <- filter(df, !is.na(df$cum_avg_lnsats48_activity))
+
 df$post_type <- as.factor(df$post_type)
 df$time <- df$weekId / max(df$weekId)  # linear time trend normalized to 0-1
 df$subId <- as.factor(df$subId)
