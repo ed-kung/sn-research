@@ -1,20 +1,20 @@
 \begin{table}[H]
 \centering
-\caption{Effect of Prior Tip Feedback on Post Type Choice}
+\caption{Effect of Observed Tip Feedback on Post Type Choice}
 \vspace{0.2cm}
 \label{tbl_learning}
 \begin{adjustbox}{max width=\textwidth}
 \begin{threeparttable}
 \begin{tabular}{lcccccc}
 \toprule
- & \multicolumn{6}{c}{Prior feedback weighted by:} \\
+ & \multicolumn{6}{c}{Observed feedback weighted by:} \\
  & \multicolumn{2}{c}{Uniform} & \multicolumn{2}{c}{Recency} & \multicolumn{2}{c}{\makecell{Distance to user's\\peak activity}} \\ [1ex]
  & (1) & (2) & (3) & (4) & (5) & (6) \\
 \midrule
  &  &  &  &  &  &  \\
-Prior Feedback (All Posts)  & 0.786$^{***}$ & 0.839$^{***}$ & 0.885$^{***}$ & 0.903$^{***}$ & 0.755$^{***}$ & 0.797$^{***}$ \\
+Observed Feedback  & 0.786$^{***}$ & 0.839$^{***}$ & 0.885$^{***}$ & 0.903$^{***}$ & 0.755$^{***}$ & 0.797$^{***}$ \\
  & (0.019) & (0.019) & (0.018) & (0.018) & (0.017) & (0.017) \\ [1.8ex]
-Prior Feedback $\times$ User's Experience  & -0.167$^{***}$ & -0.165$^{***}$ & -0.189$^{***}$ & -0.188$^{***}$ & -0.159$^{***}$ & -0.156$^{***}$ \\
+Observed Feedback $\times$ User's Experience  & -0.167$^{***}$ & -0.165$^{***}$ & -0.189$^{***}$ & -0.188$^{***}$ & -0.159$^{***}$ & -0.156$^{***}$ \\
  & (0.002) & (0.002) & (0.002) & (0.002) & (0.002) & (0.002) \\ [1.8ex]
 User-Specific Excess Feedback  &  & 0.096$^{***}$ &  & 0.093$^{***}$ &  & 0.096$^{***}$ \\
  &  & (0.004) &  & (0.004) &  & (0.004) \\ [1.8ex]
@@ -31,7 +31,7 @@ McFadden's Pseudo-R$^2$ & 0.275 & 0.277 & 0.280 & 0.281 & 0.275 & 0.277 \\ [1.8e
 \item[] \parbox[t]{\linewidth}{%
 \hfill * $p<0.1$, ** $p<0.05$, *** $p<0.01$.
 }
-\item \textit{Notes:} This table reports estimated coefficients from the conditional logit model for learning described in Section \ref{sec_v4v} equation \eqref{eq_learning}. ``Prior Feedback'' is a weighted average of the $\ln$ of sats earned in the first 48 hours for previously posts of each type. See Section \ref{sec_v4v} for a description of the model and weighting functions. ``User's Experience'' is the $\ln$ of the number of posts the user has made. ``User-Specific Excess Feedback'' is the average of the user's own past rewards for each post in excess of the average over all prior posts of that type.
+\item \textit{Notes:} This table reports estimated coefficients for the conditional logit model of post type choice described in Section \ref{sec_v4v} equation \eqref{eq_learning}. Each unit of observation is a user $i$'s choice to make a post of type $c$ at time $t$. The user chooses the post type based on their prior observation of tips earned by posts of each type. ``Observed Feedback'' is a weighted average of ln(sats) earned on posts of each type $c$, made by anyone between the user $i$'s first post and time $t$, where the weights are meant to capture the likelihood that the post rewards were observed by the user. See Section \ref{sec_v4v} for a description of the model and weighting functions. ``User's Experience'' is the $\ln$ of the number of posts the user $i$ has made up to time $t$. ``User-Specific Excess Feedback'' is the average of the user's own past ln(sats) for each post type $c$, earned in excess of the weighted average for that post type.
 \end{tablenotes}
 \end{threeparttable}
 \end{adjustbox}
