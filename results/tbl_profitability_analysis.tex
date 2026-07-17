@@ -1,28 +1,31 @@
 \begin{table}[H]
 \centering
-\caption{Effect of Profitability on User Exit} \label{tbl_profitability_analysis}
-\begin{adjustbox}{width=\textwidth}
+\caption{Effect of Profitability on User Exit} 
+\vspace{0.2cm}
+\label{tbl_profitability_analysis}
+\begin{adjustbox}{max width=\textwidth}
 \begin{threeparttable}
-\begin{tabular}{@{\extracolsep{5pt}}lcccc} 
-\\[-1.8ex]\hline 
-\hline \\[-1.8ex] 
+\begin{tabular}{lcccc} 
+\toprule
  & \multicolumn{4}{c}{\textit{Dependent variable:}} \\ 
-\cline{2-5} 
-\\[-1.8ex] & \multicolumn{4}{c}{Whether user becomes inactive} \\ 
-\\[-1.8ex] & (1) & (2) & (3) & (4) \\ 
-\hline \\[-1.8ex] 
+ & \multicolumn{4}{c}{Whether user becomes inactive} \\ [1ex]
+ & (1) & (2) & (3) & (4) \\ 
+\midrule
+ &  &  &  &  \\
 Unprofitable in last 8 weeks  & 0.105$^{***}$ & 0.062$^{***}$ & 0.060$^{***}$ & 0.055$^{***}$ \\
- & (0.003) & (0.003) & (0.003) & (0.003) \\
+ & (0.003) & (0.003) & (0.003) & (0.003) \\ [1ex] 
 $\ldots \times$ BTC price appreciation in last 8 weeks  &  &  &  & 0.056$^{***}$ \\
- &  &  &  & (0.014) \\
+ &  &  &  & (0.014) \\ [1ex] 
 log(Items posted in last 8 weeks)  &  & -0.029$^{***}$ & -0.029$^{***}$ & -0.029$^{***}$ \\
- &  & (0.001) & (0.001) & (0.001) \\
+ &  & (0.001) & (0.001) & (0.001) \\ [1ex] 
 Constant  & 0.079$^{***}$ & 0.157$^{***}$ &  &  \\
- & (0.001) & (0.002) &  &  \\
+ & (0.001) & (0.002) &  &  \\ [1ex] 
 & & & & \\
-\hline \\ [-1.8ex]
 Week FE & N & N & Y & Y \\
-Observations  & 92,956 & 92,956 & 92,956 & 92,956 \\ \hline \hline 
+ & & & & \\
+Observations  & 92,956 & 92,956 & 92,956 & 92,956 \\ 
+R$^2$  & 0.018 & 0.042 & 0.048 & 0.048 \\ [1.8ex] 
+\bottomrule
 \end{tabular} 
 \begin{tablenotes}[flushleft]\footnotesize
 \item[] \parbox[t]{\linewidth}{%
