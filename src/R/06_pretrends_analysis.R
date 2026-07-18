@@ -66,12 +66,12 @@ qual_df$log_sats48 <- log(1+qual_df$sats48)
 fmla1 <- build_fmla(
   "log_sats48",
   c(fee_chg_pos_F, "fee_chg_pos", fee_chg_pos_L, fee_chg_neg_F, "fee_chg_neg", fee_chg_neg_L),
-  c("weekId", "sub_subOwner_id")
+  c("weekId", "subId")
 )
 fmla2 <- build_fmla(
   "log_sats48",
   c(fee_chg_pos_F, "fee_chg_pos", fee_chg_pos_L, fee_chg_neg_F, "fee_chg_neg", fee_chg_neg_L),
-  c("weekId", "sub_subOwner_id", "userId")
+  c("weekId", "subId", "userId")
 )
 
 r1 <- feols(fmla1, data=qual_df, vcov=~subId)
@@ -87,10 +87,17 @@ quant_df$log_posts <- log(1+quant_df$n_posts)
 fmla3 <- build_fmla(
   "log_posts",
   c(fee_chg_pos_F, "fee_chg_pos", fee_chg_pos_L, fee_chg_neg_F, "fee_chg_neg", fee_chg_neg_L),
-  c("weekId", "sub_subOwner_id")
+  c("weekId", "subId")
+)
+fmla4 <- build_fmla(
+  "log_posts",
+  c(fee_chg_pos_F, "fee_chg_pos", fee_chg_pos_L, fee_chg_neg_F, "fee_chg_neg", fee_chg_neg_L, "L12_growth"),
+  c("weekId", "subId")
 )
 
+
 r3 <- feols(fmla3, data=quant_df, vcov=~subId)
+r4 <- feols(fmla4, data=quant_df, vcov=~subId)
 
 
 # ---- Output results
@@ -100,7 +107,8 @@ etable(r1, r2, r3)
 coefs_df <- rbind(
   extract_reg(r1, "r1"),
   extract_reg(r2, "r2"),
-  extract_reg(r3, "r3")
+  extract_reg(r3, "r3"),
+  extract_reg(r4, "r4")
 )
 
 outfile <- paste0(DATA_PATH, "/pretrends_analysis_coefs.parquet")

@@ -64,6 +64,12 @@ quant_df = read_parquet(quant_file)
 qual_df$log_sats48 <- log(1 + qual_df$sats48)
 qual_df$log_cost <- log(1 + qual_df$cost)
 qual_df$log_comments48 <- log(1 + qual_df$comments48)
+qual_df <- qual_df %>% group_by(
+  subId, weekId
+) %>% mutate(
+  num_posts = n()
+) %>% ungroup()
+qual_df$log_num_posts <- log(1 + qual_df$num_posts)
 
 quant_df$log_cost <- log(1 + quant_df$posting_fee)
 quant_df$log_posts <- log(1 + quant_df$n_posts)
@@ -74,8 +80,8 @@ quant_df$log_posts <- log(1 + quant_df$n_posts)
 
 rzaps0 <- feols(log_sats48 ~ log_cost | 0, data=qual_df, vcov = ~subId)
 rzaps1 <- feols(log_sats48 ~ log_cost | subId + weekId, data=qual_df, vcov = ~subId)
-rzaps2 <- feols(log_sats48 ~ log_cost | weekId + sub_subOwner_id, data=qual_df, vcov = ~subId)
-rzaps3 <- feols(log_sats48 ~ log_cost | weekId + sub_subOwner_id + userId, data=qual_df, vcov = ~subId)
+rzaps2 <- feols(log_sats48 ~ log_cost + log_num_posts | subId + weekId, data=qual_df, vcov = ~subId)
+rzaps3 <- feols(log_sats48 ~ log_cost + log_num_posts | subId + weekId + userId, data=qual_df, vcov = ~subId)
 
 etable(rzaps0, rzaps1, rzaps2, rzaps3)
 
