@@ -1,0 +1,14 @@
+---
+description: Python and R stack conventions for econometric research
+alwaysApply: true
+---
+
+# Stack
+
+- Primary languages: **Python** and **R** (economics / econometrics).
+- Always use the repo-local virtualenv at `.venv` for Python work.
+  - Prefer `.venv/bin/python` and `.venv/bin/pip`, or `source .venv/bin/activate` before Python commands in a shell.
+  - Never install packages or run analysis with system/global Python.
+  - If `.venv` is missing, recreate with `python3 -m venv .venv` and `pip install -r requirements.txt` before continuing.
+- Default Python packages: `numpy`, `pandas`, `matplotlib`, `pyarrow`, `scikit-learn`. Add other packages only when needed.
+- Load paths from `config.yaml.local`; write outputs to `AGENT_DATA_PATH`, never to `DATA_PATH`.

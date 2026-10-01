@@ -1,0 +1,22 @@
+---
+description: Agent Workflow
+alwaysApply: true
+---
+
+# Agent workflow
+
+## Agent workspace
+
+- Keep any scripts you generate under `agent/src/` following the same conventions observed in `src/`
+- Do not modify user generated scripts under `src/` unless instructed to
+- Any artifacts or intermediate datasets generated can be saved to `AGENT_DATA_PATH`
+
+## Agent reports
+
+- After finishing any task, write a report under `agent/reports/`:
+- Filename: `agent/reports/YYYY-MM-DD-short-slug.md`
+- Describe what was done and the main findings
+- Include a summary paragraph at the top
+- If any artifacts were generated, list their file locations 
+- Keep entries concise and factual
+

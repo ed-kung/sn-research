@@ -1,0 +1,17 @@
+---
+description: Data protection policies 
+alwaysApply: true
+---
+
+# Raw data protection
+
+- Load `DATA_PATH` and `AGENT_DATA_PATH` from `config.yaml.local`.
+- **Never** create, modify, delete, move, or overwrite files under `DATA_PATH`.
+- Treat everything under `DATA_PATH` as read-only input.
+- As the agent, you may write files to `AGENT_DATA_PATH`.
+
+
+# Git policies
+
+- Do not create or switch branches unless specifically instructed.
+- **Never** track, commit, or push `config.yaml.local` as it contains secrets
