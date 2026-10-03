@@ -2,6 +2,68 @@
 
 In this section, we consider our first hypothesis: whether higher posting costs lead to fewer posts in a territory, but higher quality posts. 
 
+\subsection{A model of cost-based screening} \label{sec_pay_to_post_model}
+
+We envision a model in which a user receives ``post ideas'' as a Poisson process with arrival rate $\gamma$. Post ideas arrive with a quality level $q$, which affects how other users respond to the post, and an intrinsic motivation to post it, $\epsilon$. The level of internal motivation may be correlated with post quality, and they are drawn from a joint probability density function $f(q, \epsilon)$. We allow different users to draw from different distributions of $(q,\epsilon)$, but for now we focus on the decisions of a single user.
+
+By Bayes' Rule, $f(q, \epsilon) = f_{\epsilon|q} (\epsilon | q) f_q (q)$, where $f_{\epsilon|q}(\cdot)$ is the conditional density of $\epsilon$ given $q$, and $f_q(\cdot)$ is the marginal density of $q$. We assume that $f_{\epsilon|q}(\cdot)$ is strictly log-concave and weakly satisfies the monotone likelihood ratio property in $\epsilon$ with respect to $q$:
+
+\begin{assumption}[Log Concavity]\label{asm_logconcavity}
+For each $q$, $f_{\epsilon|q}(\cdot | q)$ is strictly log-concave; that is, $\ln f_{\epsilon|q} (\epsilon | q)$ is strictly concave in $\epsilon$.
+\end{assumption}
+\begin{assumption}[Monotone Likelihood Ratio Property]\label{asm_mlrp}
+For any $q_2 > q_1$, the likelihood ratio of the conditional densities,
+\begin{align*}
+\ell(\epsilon;q_1, q_2) = \frac{f_{\epsilon|q}(\epsilon|q_2)}{f_{\epsilon|q}(\epsilon|q_1)}
+\end{align*}
+is weakly increasing in $\epsilon$.
+\end{assumption}
+
+Assumption \ref{asm_logconcavity} limits the heaviness of the tail of the motivation distribution. Intuitively, it ensures that the extreme tail of the motivation distribution is not thick enough to swamp quality selection effects at very high posting costs. It is not a strong assumption, and it is satisfied by most commonly used distributional families, including the normal and logistic distributions.
+
+Assumption \ref{asm_mlrp} is a non-negative dependence condition between post quality $q$ and intrinsic motivation $\epsilon$. Informally, it says that higher quality ideas tend to come with (weakly) higher intrinsic desire to post: when $q$ is higher, the distribution of $\epsilon$ shifts to the right. Independence between $\epsilon$ and $q$ is allowed as a special case, but the assumption rules out systematic negative dependence. In our context, this means that users who receive a high quality post idea are also (weakly) more likely to feel a strong intrinsic desire to post it.
+
+Once a post is made, zaps arrive according to a Poisson process. Both the arrival rate of zaps and the amount of each zap are dependent on the quality of the post, $q$. Let $\lambda(q)$ be the arrival rate as a function of $q$, and let $E[z|q]$ be the expected zap amount per zap conditional on $q$.
+
+Supposing the user has a discount factor of $\rho$, the expected present value of the Poisson stream of zaps is equal to:\footnote{This follows from $V(q) = \int_{0}^{\infty} e^{-\rho t} \lambda(q) E[z|q] dt$.}
+\begin{align}
+V(q) = \frac{\lambda(q)}{\rho} E \left[ z | q \right] \label{eq_V}
+\end{align}
+We assume $V(q)$ is continuous and strictly increasing in $q$, which merely says that the expected present value of zaps is higher for higher quality posts:
+\begin{assumption}[Monotone Returns to Quality]\label{asm_monotonicity}
+$V(q) = \frac{\lambda(q)}{\rho} E[z|q]$ is continuous and strictly increasing in $q$.
+\end{assumption}
+
+The user will make the post if their expected present value of zaps multiplied by their intrinsic motivation is greater than the posting cost $c$. That is, the user will make the post if and only if:
+\begin{align}
+V(q)e^{\epsilon} > c
+\end{align}
+Equivalently, we can rewrite the posting rule as a log-linear inequality. The user posts if and only if:
+\begin{align}
+\ln V(q) + \epsilon > \kappa \label{eq_pay_to_post_choice}
+\end{align}
+where we have defined $\kappa = \ln c$. From the perspective of the user, $c > 0$ is fixed and known at the time of the post.
+
+Under these conditions, we can demonstrate cost-based screening:
+
+\begin{proposition} \label{prop_pay_to_post}
+Suppose Assumptions \ref{asm_logconcavity}-\ref{asm_monotonicity} hold. Then an increase in $c$:
+\begin{enumerate}[label=(\roman*)]
+\item strictly decreases the probability that the post idea is posted, and
+\item strictly increases the expected quality of posts, conditional on posting.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+A proof is provided in the appendix.
+\end{proof}
+
+Proposition \ref{prop_pay_to_post} implies that when posting cost increases, users are less likely to post, but that when they do post, the average quality of the post is higher. Although the proposition is stated from the perspective of a single user, we note that as long as the global joint distribution of $(q,\epsilon)$ holds to Assumptions \ref{asm_logconcavity} and \ref{asm_mlrp}, and if Assumption \ref{asm_monotonicity} also holds for all users, then Proposition \ref{prop_pay_to_post} applies in the aggregate, even if users have heterogeneous marginal densities for $q$ and $\epsilon$.  
+
+Proposition \ref{prop_pay_to_post} extends directly to a setting with multiple territories if the arrival process of post ideas in each territory is a separate Poisson process. If instead users receive a single post idea and then decide which territory $j$ to post in based on maximization of $V_j(q_j)e^{\epsilon_j} - c_j$, then the same screening intuition carries over if quality has a strong common effect on expected returns across territories, while intrinsic motivation is relatively territory-specific. In that case, a higher posting cost tends to eliminate or redirect lower-value ideas, whereas sufficiently high-quality ideas remain worth posting.
+
+
+
 \subsection{Evidence on post quality}
 
 To test the relationship between posting fee and post quality, we run regressions of the following form:

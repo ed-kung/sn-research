@@ -1,69 +1,74 @@
 \section{Tip-based learning}\label{sec_v4v}
 
-We now consider our second hypothesis: that users learn from and respond to tip feedback by shifting their posting behavior towards better rewarded post types.
+We now consider our second hypothesis: that users learn from and respond to tip feedback by shifting their posting behavior towards better rewarded post types. 
 
-\subsection{Model of post type choice} \label{sec_v4v_model}
+\subsection{Model of tip-based learning}
 
-To test this hypothesis, we must first develop some notation for modeling user choice of post type. Consider a user $i$ at time $t$, deciding to make a post from a finite number of post types, $c = 1,\ldots,C$. In theory, the post type could measure any number of different post attributes. In practice, and for parsimony's sake, we limit ourselves to a small number of types based primarily on the length of the post, whether it is a link-only post, and whether it includes hyperlinks and images.
+We start by developing a model of learning from tip feedback. Because learning involves many unobservables, like users' priors, information sets, and sources of uncertainty, we aim to keep the model parsimonious. The purpose of the model is to illustrate how assumptions about the decision structure lead to testable predictions, rather than to deeply micro-found the assumptions.\footnote{In the appendix, we develop a more microfounded model and discuss how they map onto our assumptions here.}
 
-Let $V_{itc}$ be user $i$'s utility for making a post of type $c$ at time $t$. Let $y_{itc}$ equal 1 if the user actually makes a type $c$ post at time $t$, and 0 otherwise. The user chooses the post type that maximizes $V_{itc}$. Thus:
+We assume that users are learning about the expected rewards in territories. Let $j$ index a territory. The expected present value of the Poisson stream of zaps in territory $j$ is:
 \begin{align}
-y_{itc} = 1\left[ V_{itc} \geq V_{itc^\prime} ~ \forall c^\prime=1, \ldots, C \right]
+V(q; \Theta_j) = \Theta_j v(q)  \label{eq_v4v_V}
 \end{align}
-We model the user's utility as follows:
+where $v(q)$ is known, continuous, and strictly increasing in $q$. $\Theta_j$ is an unknown, territory-specific parameter which reflects how generously posts are rewarded in territory $j$, holding post quality fixed.
+
+Let $\mathcal{I}_{it}$ denote user $i$'s information at time $t$, which includes previously observed tip rewards. Define $A_{ijt}$ and $\alpha_{ijt}$ as the expected value and the log expected value of $\Theta_{j}$ conditional on the user's information set:
 \begin{align}
-V_{itc} = \alpha E \left[\ln z_{itc} | I_{itc} \right] + \delta_{c} +\gamma_c \cdot t + \epsilon_{itc}
+A_{ijt} = E\left[ \Theta_{j} \mid \mathcal{I}_{it} \right], ~ ~ \alpha_{ijt} = \ln A_{ijt}
 \end{align}
-where $E\left[ \ln z_{itc} | I_{itc} \right]$ is the user's expected value of the log of the sats they would receive on the post, conditional on their information set $I_{itc}$. $\delta_{c}$ is separate intercept for each post type, meant to reflect differences in baseline popularity of each post type.  $\gamma_c \cdot t$ are post type specific linear time trends, which capture changes to the popularity of different post types over time which are not explainable by observed tip feedback. $\epsilon_{itc}$ is an error term which captures idiosyncratic features such as the user's intrinsic desire to make a type-$c$ post in the moment. We model $\epsilon_{itc}$ as a Gumbel distribution, which turns the choice model into a standard conditional logit choice model over $C$ alternatives. Our hypothesis is that $\alpha > 0$; that is, the user's expected rewards for post type $c$ will shift his decision-making towards a greater likelihood of making a type-$c$ post.
 
-\subsection{Post types}
+Post ideas for territory $j$ arrive for user $i$ at rate $\gamma_{ij}$, and their quality and intrinsic motivation are distributed according to $f^{ij}(q,\epsilon) = f^{ij}_{\epsilon|q}(\epsilon|q)f^{ij}_q(q)$. As in Section \ref{sec_pay_to_post_model}, we assume that within each territory, $f^{ij}(q,\epsilon)$ satisfies log concavity and the monotone likelihood ratio property.
 
-To keep the model parsimonious, we categorize posts into five post types based on the number of words and the presence of images or hyperlinks in the post body. Table \ref{tbl_post_types_summary} shows the five types, their prevalence in the data, the average amount of sats earned in the first 48 hours, and the average number of replies received in the first 48 hours.
-
-The first type of post is a link-only post with no words in the post body. Link-only posts are posts that link to an external URL with no additional text in the post body. Link-only posts earn the least amount of sats, and are generally seen by users as low effort posts because they contain no original content. However, link-only posts are the most common type of post on Stacker News.
-
-The next four types of post are based on whether the post body contains above or below the median number of words, and whether the post body contains images or hyperlinks. Posts with more words tend to earn more sats on average than posts with less words, and posts with images or hyperlinks in the body earn more sats when combined with more words. Posts with more words may be associated with more effort and more original content, which may thereby be rewarded with more tips. Posts with images may be more visually appealing than posts without images, and thus also earn more sats. Hyperlinks in posts with many words are usually associated with linked references and citations in the post body, another sign of quality that may be accordingly rewarded. 
-
-Table \ref{tbl_post_types_summary} shows that posts with an above median number of words and with images or hyperlinks in the body are the best rewarded, by a significant margin. Posts with an above median number of words, but without images or hyperlinks in the body, are the second most rewarded type. The typical earnings of below median length posts are about the same with or without images and hyperlinks. And finally, link-only posts are the least rewarded type of post by a significant margin.
-
-
-
-
-\subsection{Information environment assumptions}
-
-It is not possible for us, as the researchers, to know the information set of each user in each moment that a choice was made. We therefore proceed by making different assumptions about the information environment and showing that the results are robust to the choice of assumption.
-
-To start with, we calculate $E\left[ \ln z_{itc} | I_{itc} \right]$ as follows:
+If a post idea for territory $j$ arrives for user $i$ at time $t$ with quality and intrinsic motivation $(q,\epsilon)$, the posting rule is post if:
 \begin{align}
-E\left[ \ln z_{itc} | I_{itc} \right] = \frac{\sum_{i^\prime} \sum_{t^\prime < t} y_{i^\prime t^\prime c} w_{itc,i^\prime t^\prime c} \ln z_{i^\prime t^\prime c} }{\sum_{i^\prime} \sum_{t^\prime < t} y_{i^\prime t^\prime c} w_{itc, i^\prime t^\prime c}}
+\alpha_{ijt} + \ln v(q) + \epsilon > \kappa_{jt}
 \end{align}
-In other words, we calculate $E\left[ \ln z_{itc} | I_{itc} \right]$ as the weighted average of the realized ln(zaps) for all type $c$ posts made before time $t$ (by any user). Different assumptions about the information set are introduced through the choice of weights, $w_{itc,i^\prime t^\prime c}$, which explicitly depend on both $itc$ (the user making the decision) and $i^\prime t^\prime c$ (the post from which information is being drawn). 
-
-As a baseline, we consider uniform weights as long as the post was made after the user became active. That is, $w_{itc,i^\prime t^\prime c} = 1$ so long as $t^\prime$ is after user $i$'s first post. This assumes that user $i$ observes and draws information from all posts made from the time he became active to the current time.
-
-As a second possibility, we consider weights that are based on recency. In this weighting scheme, $w_{itc,i^\prime t^\prime c} = e^{-\lambda (t - t^\prime)}$, where $\lambda$ is chosen for a half-life of 4 weeks. This information environment assumes that the user pays more attention to recent posts than to old posts, and variation is driven by the timing of the user's posts.
-
-As a third possibility, we consider weights that are based on the proximity of the post to the user's peak activity hours. The idea of this weighting scheme derives from the fact that Stacker News is an international platform, and that different users are most active during different times of the day. For each user $i$, we measure $s_{i}^*$, the average time in the day (measured in seconds from midnight) that the user tends to post. Then, the weights are calculated as $w_{itc, i^\prime t^\prime c} = \exp\left(-\frac{d(s_i^*, t^\prime)^2}{2\sigma^2} \right)$, where $d(s_i^*, t^\prime)$ measures the circular time-of-day distance between $t^\prime$ and $s_i^*$. This information environment assumes that users are more aware of posts made during their peak activity hours.  $\sigma^2$ is chosen to generate a half-life of 3 hours.
-
-\subsection{Results}
-
-Table \ref{tbl_learning} shows the estimation results for this choice model under the aforementioned information assumptions. Columns 1-2 of Table \ref{tbl_learning} show the estimated coefficients under uniform weights, columns 3-4 show the coefficients under recency-based weights, and columns 5-6 shows the coefficients under proximity-to-peak-hours weights.
-
-In the Table, ``Observed Tips'' is equivalent to $E\left[ \ln z_{itc} | I_{itc} \right]$. In all six specifications shown, the coefficient on Observed Tips is estimated to be positive and statistically significant. This confirms our hypothesis that $\alpha>0$; in other words, we find that users shift their posting behavior towards the post types that they observed to be better rewarded. This finding is robust to the various assumptions we made about the information environment.
-
-In addition, we enrich the model by interacting Observed Tips with a measure of the user's experience level, measured by the natural log of the number of posts they've made. This interaction captures a natural feature of learning models which says that learning slows down as the user gets more experienced. When a user has many posts under their belt, they will already have a good sense of what works well for them and what doesn't, and observed tips on other posts are no longer as influential in their decision-making. Consistent with learning theory, we find a negative and statistically significant interaction between Observed Tips and the user's experience level. The finding is robust to our different choices of weighting functions.
-
-Lastly, in columns 2, 4, and 6, we augment the model with a variable called ``User Excess Tips''.  ``User Excess Tips'' is equal to:
+where $\kappa_{jt} = \ln c_{jt}$ is the log posting cost in territory $j$ at time $t$.  The probability (over $q, \epsilon$) that the idea is posted is given by:
 \begin{align}
-\text{User Excess Tips} &= \frac{\sum_{t^\prime < t} y_{it^\prime c} w_{itc, it^\prime c} \ln z_{it^\prime c}}{\sum_{t^\prime < t} y_{it^\prime c} w_{itc, it^\prime c} } - E\left[ \ln z_{itc} | I_{itc} \right] 
+P_{ijt} = \int S^{ij}_{\epsilon|q} \left( \kappa_{jt} - \alpha_{ijt} - \ln v(q) \mid q \right) f^{ij}_q(q) dq
 \end{align}
-User Excess Tips measures the degree to which the user's own log earnings on posts of type $c$, up to time $t$, have exceeded their estimate based on all observed posts. We expect the coefficient on User Excess Tips to be positive, because a user's own posts are expected to be more salient to their belief formation than other users' posts. A user's own posts could be more salient either because they pay more attention to their own posts, or because their excess earnings relative to other users conveys information about a post-type specific match quality. In either case, a user who earns more tips on a particular post type relative to other users is expected to shift their posting towards that post type. In Table \ref{tbl_learning}, we find a positive and statistically significant coefficient for User Excesss Tips when we use uniform weights or weights based on proximity to the user's peak activity hours. When we use recency-based weights, we find that the effect disappears. This suggests that users are responsive to their historical excess feedback, but not necessarily to recent excess feedback conditional on the observed tips from recent posts. 
+which is decreasing in $\kappa_{jt}$ and increasing in $\alpha_{ijt}$. Thus, higher posting costs deter posting, but a greater expectation of tip rewards incentivizes posting. The instantaneous rate of user $i$ posting in territory $j$ at time $t$ is $\gamma_{ij} P_{ijt}$.
 
-\subsection{Discussion}
+\subsection{Empirical specification}
 
-In this section, we found evidence confirming our hypothesis that users respond to tip-driven feedback by shifting their posting behavior towards posts that appear to be better rewarded. Consistent with learning theory, we also found that new users are more responsive to prior observed tips than seasoned users, and that users are additionally responsive to excess tip feedback on their own posts. The findings were robust to various assumptions about the information environment.
+To bring the model to the data, we model belief updating at a weekly frequency. This need not imply that users formally update their beliefs once a week, but it captures the idea that behavioral responses to tip feedback are gradual and that high-frequency variation in individual posting decisions is largely idiosyncratic. The temporal aggregation also permits territory-by-week fixed effects that absorb common changes in territory-level attention and posting incentives, allowing learning to be identified from variation in individual post histories. 
 
-If users shift their posting behavior towards better-rewarded types, then over time we should expect to see the share of those types increase in the aggregate, while the share of poorly rewarded types is expected to decrease. Figure \ref{fig_v4v_q_trend} shows that this is indeed what we see. Link-only posts, the lowest effort and least rewarded type of post, decreased precipitously in the aggregate from the start of the sample period to the end. Non-link-only posts all increased, with above-median length posts with images or hyperlinks increasing in share the most.  
+We also model users as updating their beliefs using tips that a post receives after 48 hours, $Z$. This keeps the model parsimonious, because $\ln Z$ is a noisy signal of $\theta_j + \ln v(q)$, and it allows us to abstract away from details about the timing of when posts receive their zaps.\footnote{To see this, we note that $E[Z] \propto V(q) = \Theta_jv(q)$, according to equations \eqref{eq_V} and \eqref{eq_v4v_V}. We can therefore write $Z = \Theta_j v(q) e^{\eta}$, or $\ln Z = \theta_j + \ln v(q) + \eta$, where $\eta$ is an i.i.d. residual arising from the idiosyncratic realizations of the Poisson zaps process.} We therefore assume that users update their beliefs according to their history of ``quality-adjusted zap signals'': $r = \ln Z - \ln v(q)$.
 
-The findings suggest that tip-driven monetary feedback mechanisms could help to shape the overall quality of user submitted content, even if the monetary value of the tips is very small. 
+Let $\mathcal{I}_{iw}$ be user $i$'s information set at week $w$. Let $p$ index a post, sorted by timestamp, and let $i(p)$ be the user who made the post, $j(p)$ be the territory of the post, and $\tau(p)$ be the timestamp of the post. Let $\tau(w)$ be the timestamp of the start of a week. The information set available to user $i$ at the start of week $t$ is:
+\begin{align}
+\mathcal{I}_{iw} = \left\{ (Z_p, q_p):p\in \mathcal{P}_{iw} \right\}, ~ ~ \mathcal{P}_{iw} = \left\{ p: \tau(p) < \tau(w) - \text{48 hours} \right\}
+\end{align}
+In words, the user is able to observe signals for all posts made 48 hours before the start of the week.
+
+We postulate the following reduced form specification for $\alpha_{ijt}$, the log of the user's posterior mean over $\Theta_j$ at the start of week $w$:
+\begin{align}
+\alpha_{ijw} &= b^0_{ij} + \beta \sum_{p \in \mathcal{P}_{iw}} K_{ijwp} \left[ \ln Z_p - \ln v(q_p) \right] \nonumber \\
+& = b^0_{ij} + \beta \sum_{p \in \mathcal{P}_{iw}} K_{ijwp} r_{p} 
+\end{align}
+In words, the log of the user's posterior mean over $\Theta_j$ is a weighted sum of previously observed quality-adjusted zap signals, $r_p : p\in \mathcal{P}_{iw}$. This specification nests standard models of learning like conjugate-normal Bayesian updating, but it is flexible enough to allow for effects like attention decay and social proximity in learning. For example, suppose we assume that users pay more attention to recent signals and that they only learn from their own signals. Then, we could specify the kernel weights as:
+\begin{align}
+K_{ijwp} \propto e^{-(\tau(w) - \tau(p))/\sigma} 1 \left[ j(p)=j, ~ i(p)=i \right]
+\end{align}
+However, we need not specify the weights in this manner, and in practice we try different assumptions about the information environment.
+
+Now, let $E \left[ N_{ijw} \mid \mathcal{I}_{iw} \right]$ be the expected number of posts user $i$ will make in territory $j$ in week $t$, conditional in the information set $\mathcal{I}_{iw}$. Under our beliefs model, the exact form is equal to:
+\begin{align}
+E \left[ N_{ijw} \mid \mathcal{I}_{iw} \right] = \gamma_{ij} \int_{\tau(w)}^{\tau(w+1)} \int S_{\epsilon|q}^{ij} \left( \kappa_{jt} - \alpha_{ijw} - \ln v(q) \mid q \right) f_q^{ij}(q) dq dt \label{eq_v4v_EN}
+\end{align}
+This expression shows that the number of posts in week $w$ is expected to depend on:
+\begin{itemize}
+\item User-by-territory effects; namely, a user-territory-specific arrival rate of post ideas, $\gamma_{ij}$, and user-territory-specific distribution of post quality and intrinsic motivation, $f^{ij}(q,\epsilon)$. This captures permanent differences in users' preferences and ability to post in different territories.
+\item Territory-by-time effects; namely, the posting cost of the territory at any time $t$, $\kappa_{jt}$. In the reduced form, territory-by-time effects could also capture topic-specific trends, such as those driven by news cycles, that are not user-specific.
+\item The weighted sum of previously observed quality-adjusted zap signals, $\alpha_{ijw}$. Higher past signals will lead to a higher expected number of posts in the week.
+\end{itemize}
+To turn this into a reduced form estimating equation, we model the number of posts with a fixed-effects Poisson model:
+\begin{align}
+& N_{ijw} \mid \mathcal{I}_{iw} \sim \text{Poisson}(\mu_{ijw}) \nonumber \\
+& \ln \mu_{ijw} = \beta \sum_{p \in \mathcal{P}_{iw}} K_{ijwp} r_{p} + \xi_{ij} + \zeta_{jw} + \nu_{iw} \label{eq_v4v_estimator}
+\end{align}
+User-by-territory fixed effects, $\xi_{ij}$, capture user-specific preferences and tendencies to post in specific territories. Territory-by-week fixed effects, $\zeta_{jw}$, capture territory-specific time trends as well as variation in posting costs. We also add user-by-week fixed effects $\nu_{iw}$ to capture changing non-territory-specific user motivation over time. 
+
+A few comments on identification. First, identification of learning comes from user-level variation in territory-specific signals. If all users had access to the same signals and formed the same expectations about territory rewards, then this would be fully absorbed into $\zeta_{jw}$. Second, the main threat to identification comes from user-by-territory specific time trends. For example, if users have time-varying territory-specific ability, then past observed signals may reflect growing ability, which is also correlated with subsequent posting. For the purposes of this paper, we do not really care whether the learning is about territory rewards or about territory-specific user ability; in either case the result is that tip feedback affects user posting decisions. So if users are learning from tip feedback about their own ability, then we do not consider that a threat to identification. A correlation between past signals and subsequent posting is only spurious if the subsequent posting would have happened regardless of what the prior tip feedback was, so that the correlation only exists as a coincidence. An example of this would be a news cycle that generates high rewards for specific topics, but that only some users are heavily interested in posting about. To the extent that the effect of the news cycle is not captured in $\ln(q)$, it would show up in the quality-adjusted zap signal and create a correlation between the signals and the posting behavior, but because the users are inherently interested in posting about the topic, they would have posted regardless of the signals. Without purely exogenous variation in signals, we cannot rule out such threats to identification. Our results should therefore be interpreted as evidence consistent with learning rather than a tightly identified causal estimate of learning.
+
 
