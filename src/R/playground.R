@@ -1,72 +1,89 @@
 rm(list=ls())
 
-library(lfe)
 library(yaml)
-library(stargazer)
-library(dplyr)
 library(arrow)
+library(broom)
+library(dplyr)
+library(fixest)
+library(sandwich)
+library(mlogit)
+library(stargazer)
+library(lfe)
 
 LOCAL_CONFIG <- read_yaml("../../config.yaml.local")
+LOCAL_PATH <- LOCAL_CONFIG["LOCAL_PATH"][[1]]
 DATA_PATH <- LOCAL_CONFIG["DATA_PATH"][[1]]
 
-filename1 <- paste0(DATA_PATH, "/tempdf1.parquet")
-filename2 <- paste0(DATA_PATH, "/tempdf2.parquet")
+# ---- Helper functions
 
-df1 <- read_parquet(filename1)
-df2 <- read_parquet(filename2)
-
-add_vars <- function(df) {
-  df$profitable <- df$rolling_profit0 > 0
-  df$logprofit <- df$log_rolling_profit0
-  df$logposts <- df$log_rolling_posts
-
-  df$profitable_X_noncustodial <- df$profitable * df$sn_is_noncustodial
-  df$logprofit_X_noncustodial <- df$logprofit * df$sn_is_noncustodial
-  df$logposts_X_noncustodial <- df$logposts * df$sn_is_noncustodial
-  
-  return(df)
+# regression function
+reg_func <- function(signal_var, experience_var, user_signal_var, data) {
+  data$signal <- data[[signal_var]]
+  data$exp <- log1p(data[[experience_var]])
+  data$signal_x_exp <- data$signal * data$exp
+  if (nchar(user_signal_var)==0) {
+    fmla <- as.formula("chosen ~ signal + signal_x_exp | time")
+  } else {
+    data$surpr <- data[[user_signal_var]] - data[[signal_var]]
+    fmla <- as.formula("chosen ~ signal + signal_x_exp + surpr | time")
+  }
+  result <- mlogit(fmla, data=data)
 }
 
-df1 <- add_vars(df1)
-df2 <- add_vars(df2)
-
-run_regs <- function(df, yvar) {
-  fmla1 <- as.formula(paste0(yvar, " ~ sn_is_noncustodial"))
-  fmla2 <- as.formula(paste0(yvar, " ~ sn_is_noncustodial + profitable + profitable_X_noncustodial"))
-  fmla3 <- as.formula(paste0(yvar, " ~ profitable + profitable_X_noncustodial | week"))
-  fmla4 <- as.formula(paste0(yvar, " ~ profitable + profitable_X_noncustodial + logposts + logposts_X_noncustodial | week"))
-  
-  r1 <- felm(fmla1, data=df)
-  r2 <- felm(fmla2, data=df)
-  r3 <- felm(fmla3, data=df)
-  r4 <- felm(fmla4, data=df)
-  
-  stargazer(
-    r1, r2, r3, r4, type="text",
-    add.lines=list(
-      c("Week FE", "N", "N", "Y", "Y")
-    )
+# extracting regression results
+extract_reg <- function(reg, reg_name) {
+  # coefficients
+  tidy_df <- tidy(reg)
+  coef_df <- data.frame(
+    regression_name = reg_name, 
+    coef_name = tidy_df$term,
+    estimate = tidy_df$estimate,
+    serr = tidy_df$std.error
   )
+  # stats
+  stats_df <- data.frame(
+    regression_name = reg_name,
+    coef_name = c("num_obs", "pseudo_r2"),
+    estimate = c(NROW(estfun(reg)), summary(reg)$mfR2),
+    serr = NA_real_
+  )
+  return(rbind(coef_df, stats_df))
 }
 
-run_regs(df1, "attached_recv_wallet")
-run_regs(df2, "attached_send_wallet")
+
+# ---- Functions for clustering standard errors
+
+# get choice-occassion ids in model-frame order
+chids_of <- function(reg) {
+  ix <- idx(reg$model)
+  unique(as.character(ix[[1]]))
+}
+
+# build cluster vector for fitted model from an itemId -> userId lookup
+cluster_of <- function(reg, id_map) {
+  cl <- unname(id_map[chids_of(reg)])
+  stopifnot(!anyNA(cl), length(cl) == NROW(estfun(reg)))
+  cl
+}
+
+# return a copy of model whose vcov() is clustered
+cluster_se <- function(reg, id_map) {
+  V <- vcovCL(reg, cluster = cluster_of(reg, id_map), type = "HC0", cadjust = TRUE)
+  out <- reg
+  out$hessian <- -solve(V)
+  out
+}
 
 
-r1 <- felm(
-  attached_recv_wallet ~ sn_is_noncustodial, data = df1
-)
-r2 <- felm(
-  attached_recv_wallet ~ sn_is_noncustodial + profitable, data = df1
-)
-r3 <- felm(
-  attached_recv_wallet ~ sn_is_noncustodial + profitable + profitable_X_noncustodial, data = df1
-)
-r4 <- felm(
-  attached_recv_wallet ~ sn_is_noncustodial + profitable + profitable_X_noncustodial | week, data = df1
-)
-r5 <- felm(
-  attached_recv_wallet ~ profitable + profitable_X_noncustodial + log_posts + log_posts_X_noncustodial | week, data = df1
-)
 
-stargazer(r1, r2, r3, r4, r5, type="text")
+
+# ---- Data loading and cleaning
+
+in_filename <- paste0(DATA_PATH, "/temp.parquet")
+
+df <- read_parquet(in_filename)
+
+
+r1 <- felm(log(1+post_count) ~ wsum | user_week_id + user_sub_id + sub_week_id, data=df)
+stargazer(r1, type="text")
+
