@@ -8,7 +8,7 @@ library(fixest)
 library(sandwich)
 library(mlogit)
 library(stargazer)
-library(lfe)
+#library(lfe)
 
 LOCAL_CONFIG <- read_yaml("../../config.yaml.local")
 LOCAL_PATH <- LOCAL_CONFIG["LOCAL_PATH"][[1]]
@@ -84,6 +84,9 @@ in_filename <- paste0(DATA_PATH, "/temp.parquet")
 df <- read_parquet(in_filename)
 
 
-r1 <- felm(log(1+post_count) ~ wsum | user_week_id + user_sub_id + sub_week_id, data=df)
-stargazer(r1, type="text")
-
+r1 <- feols(log(1+post_count) ~ K1 | user_week_id + user_sub_id + sub_week_id, data=df, vcov=~sub_week_id)
+r2 <- feols(log(1+post_count) ~ K2 | user_week_id + user_sub_id + sub_week_id, data=df, vcov=~sub_week_id)
+r3 <- feols(log(1+post_count) ~ K3 | user_week_id + user_sub_id + sub_week_id, data=df, vcov=~sub_week_id)
+r4 <- feols(log(1+post_count) ~ K1 + K2 + K3 | user_week_id + user_sub_id + sub_week_id, data=df, vcov=~sub_week_id)
+r5 <- feols(log(1+post_count) ~ K3 + KF | user_week_id + user_sub_id + sub_week_id, data=df, vcov=~sub_week_id)
+etable(r1, r2, r3, r4, r5)
