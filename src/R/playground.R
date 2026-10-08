@@ -43,8 +43,8 @@ extract_reg <- function(reg, reg_name) {
   # stats
   stats_df <- data.frame(
     regression_name = reg_name,
-    coef_name = c("num_obs", "pseudo_r2"),
-    estimate = c(NROW(estfun(reg)), summary(reg)$mfR2),
+    coef_name = c("num_obs", "R2"),
+    estimate = c(reg$nobs, fitstat(reg, "r2")[[1]]),
     serr = NA_real_
   )
   return(rbind(coef_df, stats_df))
@@ -83,10 +83,39 @@ in_filename <- paste0(DATA_PATH, "/temp.parquet")
 
 df <- read_parquet(in_filename)
 
-
 r1 <- feols(log(1+post_count) ~ K1 | user_week_id + user_sub_id + sub_week_id, data=df, vcov=~sub_week_id)
 r2 <- feols(log(1+post_count) ~ K2 | user_week_id + user_sub_id + sub_week_id, data=df, vcov=~sub_week_id)
 r3 <- feols(log(1+post_count) ~ K3 | user_week_id + user_sub_id + sub_week_id, data=df, vcov=~sub_week_id)
 r4 <- feols(log(1+post_count) ~ K1 + K2 + K3 | user_week_id + user_sub_id + sub_week_id, data=df, vcov=~sub_week_id)
-r5 <- feols(log(1+post_count) ~ K3 + KF | user_week_id + user_sub_id + sub_week_id, data=df, vcov=~sub_week_id)
-etable(r1, r2, r3, r4, r5)
+etable(r1, r2, r3, r4)
+
+coefs_df <- rbind(
+  extract_reg(r1, "r1"),
+  extract_reg(r2, "r2"),
+  extract_reg(r3, "r3"),
+  extract_reg(r4, "r4")
+)
+
+outfile <- paste0(DATA_PATH, "/learning_regs.parquet")
+write_parquet(coefs_df, outfile)
+
+
+# ---- Generate and store predictions
+
+newdf <- df
+newdf$K1 <- newdf$K1 - 0.2
+newdf$K2 <- newdf$K2 - 0.2
+newdf$K3 <- newdf$K3 - 0.2
+
+newdf$log1p_post_count_pred <- predict(r4, newdf)
+newdf$post_count_pred <- exp(newdf$log1p_post_count_pred) - 1
+
+mean(newdf$post_count_pred - newdf$post_count, na.rm=TRUE)
+
+outfile <- paste0(DATA_PATH, "/learning_df_pred.parquet")
+write_parquet(select(newdf, userId, subId, weekId, post_count_pred) , outfile)
+
+
+
+
+

@@ -1,0 +1,37 @@
+\begin{table}[H]
+\centering
+\caption{Effect of Past Quality-Adjusted Zap Signals on Post Count} 
+\vspace{0.2cm}
+\label{tbl_learning_reg}
+\begin{threeparttable}
+\begin{tabular}{lcccc} 
+\toprule
+ & \multicolumn{4}{c}{\textit{Dependent variable:}} \\ 
+ & \multicolumn{4}{c}{$\ln(1 + N_{ijw})$} \\ [1ex]
+ & (1) & (2) & (3) & (4)\\ 
+\midrule
+ &  &  &  &  \\
+$X_{ijw}^U$  & 0.015$^{***}$ &  &  & -0.060$^{*}$ \\
+ & (0.003) &  &  & (0.033) \\ [1ex] 
+$X_{ijw}^R$  &  & 0.008$^{***}$ &  & -0.006$^{}$ \\
+ &  & (0.002) &  & (0.005) \\ [1ex] 
+$X_{ijw}^E$  &  &  & 0.020$^{***}$ & 0.100$^{***}$ \\
+ &  &  & (0.003) & (0.033) \\ [1ex] 
+ & & & & \\
+User-Territory FE            & Y & Y & Y & Y \\
+Territory-Week FE            & Y & Y & Y & Y \\
+User-Week FE                 & Y & Y & Y & Y \\
+& & & & \\
+Observations  & 176,396 & 176,396 & 176,396 & 176,396 \\
+R$^2$  & 0.684 & 0.684 & 0.684 & 0.684 \\ [1.8ex] 
+\bottomrule
+\end{tabular} 
+\begin{tablenotes}[flushleft]
+\footnotesize
+\item[] \parbox[t]{\linewidth}{%
+\hfill * $p<0.1$, ** $p<0.05$, *** $p<0.01$.
+}
+\item \textit{Notes:} Regression of user $i$'s post count in territory $j$ in week $w$ on past quality-adjusted zap signals. See Section \ref{sec_v4v} for details and notation. The unit of observation is a user-territory-week. Standard errors are clustered by territory-week.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
