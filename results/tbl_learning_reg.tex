@@ -4,26 +4,28 @@
 \vspace{0.2cm}
 \label{tbl_learning_reg}
 \begin{threeparttable}
-\begin{tabular}{lcccc} 
+\begin{tabular}{lccccc} 
 \toprule
- & \multicolumn{4}{c}{\textit{Dependent variable:}} \\ 
- & \multicolumn{4}{c}{$\ln(1 + N_{ijw})$} \\ [1ex]
- & (1) & (2) & (3) & (4)\\ 
+ & \multicolumn{5}{c}{\textit{Dependent variable:}} \\ 
+ & \multicolumn{5}{c}{$\ln(1 + N_{ijw})$} \\ [1ex]
+ & (1) & (2) & (3) & (4) & (5)\\ 
 \midrule
- &  &  &  &  \\
-$X_{ijw}^U$  & 0.084$^{***}$ &  &  & 0.273$^{**}$ \\
- & (0.017) &  &  & (0.114) \\ [1ex] 
-$X_{ijw}^R$  &  & 0.054$^{***}$ &  & -0.042$^{}$ \\
- &  & (0.013) &  & (0.029) \\ [1ex] 
-$X_{ijw}^E$  &  &  & 0.092$^{***}$ & -0.168$^{}$ \\
- &  &  & (0.020) & (0.113) \\ [1ex] 
- & & & & \\
-User-Territory FE            & Y & Y & Y & Y \\
-Territory-Week FE            & Y & Y & Y & Y \\
-User-Week FE                 & Y & Y & Y & Y \\
-& & & & \\
-Observations  & 127,854 & 127,854 & 127,854 & 127,854 \\
-Pseudo-R$^2$  & 0.706 & 0.706 & 0.706 & 0.706 \\ [1.8ex] 
+ &  &  &  &  &  \\
+$X_{ijw}^U$  & 0.084$^{***}$ &  &  & 0.273$^{**}$ & 0.146$^{***}$ \\
+ & (0.017) &  &  & (0.114) & (0.031) \\ [1ex] 
+$X_{ijw}^R$  &  & 0.054$^{***}$ &  & -0.042$^{}$ &  \\
+ &  & (0.013) &  & (0.029) &  \\ [1ex] 
+$X_{ijw}^E$  &  &  & 0.092$^{***}$ & -0.168$^{}$ &  \\
+ &  &  & (0.020) & (0.113) &  \\ [1ex] 
+X_{ijw}^U \times \ln \left(1 + \sum_{w^\prime < w} N_{ijw^\prime} \right)$  &  &  &  &  & -0.065$^{**}$ \\
+ &  &  &  &  & (0.026) \\ [1ex] 
+ & & & & & \\
+User-Territory FE            & Y & Y & Y & Y & Y \\
+Territory-Week FE            & Y & Y & Y & Y & Y \\
+User-Week FE                 & Y & Y & Y & Y & Y \\
+& & & & & \\
+Observations  & 127,854 & 127,854 & 127,854 & 127,854 & 127,854 \\
+Pseudo-R$^2$  & 0.706 & 0.706 & 0.706 & 0.706 & 0.706 \\ [1.8ex] 
 \bottomrule
 \end{tabular} 
 \begin{tablenotes}[flushleft]

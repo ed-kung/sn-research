@@ -45,17 +45,22 @@ in_filename <- paste0(DATA_PATH, "/learning_analysis_data.parquet")
 
 df <- read_parquet(in_filename)
 
+df$K1_X_exp <- df$K1 / log(1+df$cum_post_count)
+
 r1 <- fepois(post_count ~ K1 | user_week_id + user_sub_id + sub_week_id, data=df, vcov=~sub_week_id)
 r2 <- fepois(post_count ~ K2 | user_week_id + user_sub_id + sub_week_id, data=df, vcov=~sub_week_id)
 r3 <- fepois(post_count ~ K3 | user_week_id + user_sub_id + sub_week_id, data=df, vcov=~sub_week_id)
 r4 <- fepois(post_count ~ K1 + K2 + K3 | user_week_id + user_sub_id + sub_week_id, data=df, vcov=~sub_week_id)
-etable(r1, r2, r3, r4)
+r5 <- fepois(post_count ~ K1 + K1_X_exp | user_week_id + user_sub_id + sub_week_id, data=df, vcov=~sub_week_id)
+
+etable(r1, r2, r3, r4, r5)
 
 coefs_df <- rbind(
   extract_reg(r1, "r1"),
   extract_reg(r2, "r2"),
   extract_reg(r3, "r3"),
-  extract_reg(r4, "r4")
+  extract_reg(r4, "r4"),
+  extract_reg(r5, "r5")
 )
 
 outfile <- paste0(DATA_PATH, "/learning_regs.parquet")
