@@ -1,0 +1,26 @@
+\begin{table}[H]
+\centering
+\caption{Performance of Iterative Fixed Effects XGBoost Model} 
+\vspace{0.2cm}
+\label{tbl_xgboost}
+\begin{threeparttable}
+\begin{tabular}{lrr} 
+\toprule
+ & RMSE & R$^2$ \\ 
+\midrule
+ &  &  \\
+
+First iteration  &  1.630 & 0.520 \\
+Second iteration &  1.618 & 0.527 \\
+Final iteration  &  1.615 & 0.529 \\
+    & & \\
+OLS benchmark    &  1.681 & 0.490 \\
+    & & \\
+\bottomrule
+\end{tabular} 
+\begin{tablenotes}[flushleft]
+\footnotesize
+\item \textit{Notes:} Performance metrics for iterative fixed effects XGBoost model described in Appendix Section \ref{sec_xgboost}. Regressors include number of words, number of images and links, whether the post is a link post, and 10 dimensional semantic text embeddings. Fixed effects include user-territory effects and week effects.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
