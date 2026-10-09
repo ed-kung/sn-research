@@ -1,4 +1,4 @@
-\section{Estimating $\ln v(q)$}
+\section{Estimating $\ln v(q)$} \label{sec_embeddings}
 
 \subsection{Description of the procedure}
 
@@ -31,10 +31,10 @@ Text embeddings were computed for each post by inputting the post text into \mbo
 
 Table \ref{tbl_xgboost} reports the root mean squared errror and $R^2$ statistics for the estimation procedure for three iterations. It also compares the metrics to an OLS benchmark. The non-parametric fixed effects model outperforms the OLS model, and the predictive accuracy converges quickly after a few iterations. 
 
-To get a sense of which factors are more important for explaining $\ln Z_p$, we present Table \ref{tbl_xgboost_factors}. On the left hand side of the table, we show the Pratt contribution for 
+To get a sense of which factors are more important for explaining $\ln Z_p$, we present Table \ref{tbl_xgboost_factors}. On the left hand side of the table, we show how much each of $\hat{\mu}_{i(p)j(p)}$, $\delta_{w(p)}$, and $\hat{g}(X_p)$ each contribute to the variance of $\widehat{\ln Z_p}$.\footnote{Note that if $Y = a + b +c$ then the percent of $Y$'s variance explained by $a$ is $\text{Cov}(a,Y)/\text{Var}(Y)$.} On the right hand side of the table, we show the ``permutation importance'' of each of the variables in $X_p$. The permutation importance measures how much the RMSE would increase if the model was re-estimated using shuffled values for that variable. In computing the permutation importance, we only re-estimate $\hat{g}(X_p)$ at the last iterative step, holding the fixed effect estimates $\hat{\mu}_{i(p)j(p)}$ and $\delta_{w(p)}$ fixed.
+
+The left half Table \ref{tbl_xgboost_factors} shows that user-territory fixed effects explain most of the variance in the predictor, about \gn{usfePctExplained}\%. Week fixed effects explain \gn{weekfePctExplained}\% of the variance, and $\hat{g}(X_p)$ explains the remaining \gn{xgbPctExplained}\%. Note that the combined model explains only about 50\% of the variance in log zaps, so we can halve the previous numbers to estimate how much each components contributes to the variance of log zaps. The relatively small explanatory power of $\hat{g}(X_p)$ suggests that post quality is hard to measure directly from objective attributes like word count, image count, and coarse semantic measures. The relatively high explanatory power of user-territory fixed effects suggests that user-territory match quality is an important factor and that users, to the extent that they are uncertain about their territory-specific match qualities, are incentivized to learn about them.
+
+The right half of Table \ref{tbl_xgboost_factors} shows the permutation importance of the variables in $X_p$. The number of words in the post is the most important factor, followed by the first text embedding dimension, followed by whether or not it is a link post. Instead of trying to interpret the meaning of each embedding dimension, we inspect the posts with highest and lowest values of $\hat{g}(X_p)$ in an attempt to characterize the objective measurements that lead to greater or lesser zaps. We found that the posts in the 95th or higher percentiles of $\hat{g}(X_p)$ were mostly long-form ideological or technical posts about Bitcoin or Lightning, posts about Stacker News itself, or posts about monetary economics. Since $X_p$ does not contain territory information, this means that the semantic vectors are able to identify such posts. By contrast, posts in the 5th or lower percentiles of $\hat{g}(X_p)$ were more diverse. They include repetitive daily posts that some users make that others tune out, short posts with barely any text, and posts that look like they might have been generated with AI. 
 
 
-%\input{results/pca_explanations.tex} We note that, although these embedding dimensions are the most strongly associated with zaps, other predictive aspects of the text content may not align with any single dimension and may instead be captured by combinations of dimensions. We therefore treat the embedding components primarily as control variables in the regression and avoid over-interpreting individual coefficients or assigning strong substantive meaning to any single dimension.
-
-\pagebreak
-\input{results/fig_text_scree_plot.tex}
