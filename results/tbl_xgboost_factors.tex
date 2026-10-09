@@ -6,8 +6,8 @@
 \begin{threeparttable}
 \begin{tabular}{lrclr} 
 \toprule
-\multicolumn{2}{c}{\makecell{Percent of Predictor\\Variance Explained}} & ~ & \multicolumn{2}{c}{\makecell{Importance of\\Factor by RMSE Gain}} \\ \cline{1-2} \cline{4-5} 
-Estimate & Pct. Explained & ~ & Variable & RMSE Gain \\ 
+\multicolumn{2}{c}{\makecell{Percent of Predictor\\Variance Explained}} & ~ & \multicolumn{2}{c}{\makecell{Importance of Factor\\by Permutation Importance}} \\ \cline{1-2} \cline{4-5} 
+Estimate & Pct. Explained & ~ & Variable & Importance \\ 
 \midrule
 $\hat{\mu}_{i(p)j(p)}$ & 0.761 & ~ & Number of words & 0.037 \\
 $\hat{\delta}_{t(p)}$ & 0.131 & ~ & Text embedding 1 & 0.023 \\
@@ -26,7 +26,7 @@ $\hat{g}(X_{p})$ & 0.107 & ~ & Link post & 0.023 \\
 \end{tabular} 
 \begin{tablenotes}[flushleft]
 \footnotesize
-\item \textit{Notes:} The left hand side of this table shows the percent of variance of $\widehat{\ln Z_p}$ explained by the corresponding estimate. The right hand side of this table shows the importance of each factor in $\hat{g}(X_p)$ by measuring the RMSE increase that results when the values of that variable are randomly shuffled. See Appendix Section \ref{sec_embeddings} for details.
+\item \textit{Notes:} The left hand side of this table shows the percent of variance of $\widehat{\ln Z_p}$ explained by the corresponding estimate. The right hand side of this table shows the importance of each factor in $\hat{g}(X_p)$ by measuring the RMSE increase that results when the values of that variable are randomly shuffled and the model is re-estimated. See Appendix Section \ref{sec_embeddings} for details.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
