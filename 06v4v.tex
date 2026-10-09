@@ -85,11 +85,12 @@ $X_{ijw}^U$ is the weighted average of all user $i$'s past signals in territory 
 
 To calculate $r_p$, we first estimate $\ln v(q)$ as a non-parametric function of objective post characteristics $X_p$. These characteristics include the word count, whether the post is a link post, the number of links and images in the post, and a 10-dimensional semantic embedding vector of the post text. The estimator minimizes the mean squared error in the equation:
 \begin{align}
-\ln Z_p = \mu_{i(p)j(p)} + \underbrace{\delta_{w(p)} + g(X_p)}_{\ln v(q_p)} + \varepsilon_p
+\ln Z_p = \mu_{i(p)j(p)} + \underbrace{\delta_{w(p)} + g(X_p)}_{\ln v(q_p)} + \varepsilon_p \label{eq_v4v_lnzp}
 \end{align}
 and we construct:
 \begin{align}
-\hat{r}_p = \ln Z_p - \hat{\delta}_{w(p)}-\hat{g}(X_p)
+\hat{r}_p &= \ln Z_p - \widehat{\ln v(q)} \nonumber \\
+& = \ln Z_p - \hat{\delta}_{w(p)}-\hat{g}(X_p) \label{eq_v4v_rhat}
 \end{align}
 User-territory fixed effects $\mu_{i(p)j(p)}$ are included in the regression but not included in the construction of $\hat{r}_p$ because that is the parameter users are learning about. Week fixed effects $\delta_{w(p)}$ are included in the regression to capture global time trends that are assumed to be known to users. We describe the non-parametric estimation of $\hat{g}(X_p)$ in more detail in the appendix.
 
