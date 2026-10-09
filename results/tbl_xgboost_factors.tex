@@ -6,12 +6,24 @@
 \begin{threeparttable}
 \begin{tabular}{lrclr} 
 \toprule
-\multicolumn{2}{c}{\makecell{Percent of Predictor\\Variance Explained}} & ~ & \multicolumn{2}{c}{\makecell{Importance of\\Factor by RMSE Gain}} \\ \cline{1-2} \cline{4-5}
-& & & & & \\
+\multicolumn{2}{c}{\makecell{Percent of Predictor\\Variance Explained}} & ~ & \multicolumn{2}{c}{\makecell{Importance of\\Factor by RMSE Gain}} \\ \cline{1-2} \cline{4-5} \vspace{0.1cm}
 Estimate & Pct. Explained & ~ & Variable & RMSE Gain \\ 
 \midrule
  &  &  & & & \\
-$\hat{\mu}_{i(p)j(p)}$ & 0.761 & ~ & num_words & 0.037 \\$\hat{\delta}_{t(p)}$ & 0.131 & ~ & num_img_or_links & 0.010 \\$\hat{g}(X_{p})$ & 0.107 & ~ & is_link_post & 0.023 \\ & & & & & \\\bottomrule
+$\hat{\mu}_{i(p)j(p)}$ & 0.761 & ~ & Number of words & 0.037 \\
+$\hat{\delta}_{t(p)}$ & 0.131 & ~ & Text embedding 1 & 0.023 \\
+$\hat{g}(X_{p})$ & 0.107 & ~ & Link post & 0.023 \\
+ & & ~ & Text embedding 2 & 0.021 \\
+ & & ~ & Text embedding 5 & 0.020 \\
+ & & ~ & Text embedding 3 & 0.019 \\
+ & & ~ & Text embedding 9 & 0.018 \\
+ & & ~ & Text embedding 7 & 0.018 \\
+ & & ~ & Text embedding 10 & 0.017 \\
+ & & ~ & Text embedding 4 & 0.017 \\
+ & & ~ & Text embedding 8 & 0.016 \\
+ & & ~ & Text embedding 6 & 0.015 \\
+ & & ~ & Number of images/links & 0.010 \\
+ & & & & & \\\bottomrule
 \end{tabular} 
 \begin{tablenotes}[flushleft]
 \footnotesize
