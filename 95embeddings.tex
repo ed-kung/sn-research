@@ -1,6 +1,40 @@
-\section{Methodological Detail - Text Embeddings}
+\section{Estimating $\ln v(q)$}
 
-Text embeddings were computed for each post by inputting the post text into \mbox{OpenAI's} \texttt{text-embedding-3-small} embedding model. The embedding model computes a 1,536 dimensional embedding vector for each post that encodes the meaning of the text in such a way that two posts with similar text will have a small distance between their embedding vectors. The raw embedding dimensions are learned from a large general purpose training corpus and are not tailored to the structure of our dataset. We therefore compute the principal components of the raw embedding vectors using our corpus. The principal components are orthogonal linear combinations of the original 1,536 embedding dimensions that explain the greatest variation across posts in our data. Figure \ref{fig_text_scree_plot} shows the scree plot of the principal components analysis, for the first \gn{NumPCAComponentsShow} components. To keep our regression in \eqref{eq_zreg} parsimonious, we decided to use only the first \gn{TextPCAK} components in the analysis. These components explain  \gn{TextPCAPctExplained}\% of the total variation,  but our results in Section \ref{sec_v4v} are robust to the specific choice of how many components to use. \input{results/pca_explanations.tex} We note that, although these embedding dimensions are the most strongly associated with zaps, other predictive aspects of the text content may not align with any single dimension and may instead be captured by combinations of dimensions. We therefore treat the embedding components primarily as control variables in the regression and avoid over-interpreting individual coefficients or assigning strong substantive meaning to any single dimension.
+\subsection{Description of the procedure}
+
+Let $p$ index a post and let $Z_p$ be the amount of tips it receives in the first 48 hours. As described in equation \eqref{eq_v4v_lnzp}, we model $Z_p$ as:
+\begin{align}
+\ln Z_p = \mu_{i(p)j(p)} + \underbrace{\delta_{w(p)} + g(X_p)}_{\ln v(q_p)} + \varepsilon_p \tag{\ref{eq_v4v_lnzp}}
+\end{align}
+and we estimate each post's quality adjusted zap signal, $\hat{r}_p$ as:
+\begin{align}
+\hat{r}_p &= \ln Z_p - \widehat{\ln v(q)} \nonumber \\
+& = \ln Z_p - \hat{\delta}_{w(p)}-\hat{g}(X_p) \tag{\ref{eq_v4v_rhat}}
+\end{align}
+This section describes our procedure for estimating equation \eqref{eq_v4v_lnzp} and thereby recovering estimates for $\hat{\delta}_{w(p)}$ and $\hat{g}(X_p)$. Since it is a mixed model with both linear fixed effects and a non-parametric function of $X_p$, we estimate it iteratively. Let $i$ now index a turn in the iterative procedure instead of a user. The procedure starts at turn $i=0$ with $\hat{g}^{(0)}(X_p)=0$. At each turn $i+1$, the procedure first uses OLS to estimate the fixed effects:
+\begin{align}
+\hat{\mu}^{(i+1)}_{i(p)j(p)},~ \hat{\delta}^{(i+1)}_{w(p)} = \text{OLS Regression of } \left(\ln Z_p - \hat{g}^{(i)}(X_p) \right) \text{ on } \mu_{i(p)j(p)},\delta_{w(p)}
+\end{align}
+and then uses XGBoost to estimate $\hat{g}^{(i+1)}$ using the new fixed effects:
+\begin{align}
+\hat{g}^{(i+1)}(X_p) = \text{XGBoost Regression of } \left( \ln Z_p - \hat{\mu}^{(i+1)}_{i(p)j(p)} - \hat{\delta}^{(i+1)}_{w(p)} \right) \text{ on } X_p \label{eq_apdx_xgboost}
+\end{align}
+
+The procedure can be run a fixed number of times or iterate until convergence. At the end of the procedure, we estimate the fixed effects a final time and use it to compute an estimate for each post's quality adjusted zap signal, as per equation \eqref{eq_v4v_rhat}.
+
+
+\subsection{Calculation of embeddings}
+
+Text embeddings were computed for each post by inputting the post text into \mbox{OpenAI's} \texttt{text-embedding-3-small} embedding model. The embedding model computes a 1,536 dimensional embedding vector for each post that encodes the meaning of the text in such a way that two posts with similar text will have a small distance between their embedding vectors. The raw embedding dimensions are learned from a large general purpose training corpus and are not tailored to the structure of our dataset. We therefore compute the principal components of the raw embedding vectors using our corpus. The principal components are orthogonal linear combinations of the original 1,536 embedding dimensions that explain the greatest variation across posts in our data. Figure \ref{fig_text_scree_plot} shows the scree plot of the principal components analysis, for the first \gn{NumPCAComponentsShow} components. To keep our regression in \eqref{eq_apdx_xgboost} parsimonious, we decided to use only the first \gn{TextPCAK} components in the analysis. These components explain  \gn{TextPCAPctExplained}\% of the total variation,  but our results in Section \ref{sec_v4v} are robust to the specific choice of how many components to use. 
+
+\subsection{Estimation results}
+
+Table \ref{tbl_xgboost} reports the root mean squared errror and $R^2$ statistics for the estimation procedure for three iterations. It also compares the metrics to an OLS benchmark. The non-parametric fixed effects model outperforms the OLS model, and the predictive accuracy converges quickly after a few iterations. 
+
+To get a sense of which factors are more important for explaining $\ln Z_p$, we present Table \ref{tbl_xgboost_factors}. On the left hand side of the table, we show the Pratt contribution for 
+
+
+%\input{results/pca_explanations.tex} We note that, although these embedding dimensions are the most strongly associated with zaps, other predictive aspects of the text content may not align with any single dimension and may instead be captured by combinations of dimensions. We therefore treat the embedding components primarily as control variables in the regression and avoid over-interpreting individual coefficients or assigning strong substantive meaning to any single dimension.
 
 \pagebreak
 \input{results/fig_text_scree_plot.tex}
