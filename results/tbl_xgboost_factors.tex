@@ -1,0 +1,20 @@
+\begin{table}[H]
+\centering
+\caption{Importance of Factors in Fixed Effects XGBoost Model} 
+\vspace{0.2cm}
+\label{tbl_xgboost_factors}
+\begin{threeparttable}
+\begin{tabular}{lrclr} 
+\toprule
+\multicolumn{2}{c}{\makecell{Percent of Predictor\\Variance Explained}} & ~ & \multicolumn{2}{c}{\makecell{Importance of\\Factor by RMSE Gain}} \\ \cline{1-2} \cline{4-5}
+Estimate & Pct. Explained & ~ & Variable & RMSE Gain \\ 
+\midrule
+ &  &  & & & \\
+\bottomrule
+\end{tabular} 
+\begin{tablenotes}[flushleft]
+\footnotesize
+\item \textit{Notes:} The left hand side of this table shows the percent of variance of $\widehat{\ln Z_p}$ explained by the corresponding estimate. The right hand side of this table shows the importance of each factor in $\hat{g}(X_p)$ by measuring the RMSE increase that results when the values of that variable are randomly shuffled. See Appendix Section \ref{sec_embeddings} for details.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
